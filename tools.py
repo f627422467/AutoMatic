@@ -93,50 +93,6 @@ async def get_goods_by_id(goods_id):
     return await utils.aiohttp_get(url, headers, proxy)
 
 
-def get_page(shop_id, page):
-    params = {
-        'shop_id': shop_id,
-        'page': page,
-        'pageSize': 100
-    }
-    url = 'https://haohuo.snssdk.com/shop/goodsList?' + urlencode(params)
-    headers = {
-        'Accept': 'application/json, text/plain, */*',
-        'user-agent': phton_user_agent,
-        'connection': 'keep-alive',
-        'Accept-Encoding': 'gzip,deflate,sdch',
-        'Accept-Language': 'en-US,en;q=0.8',
-        'Origin': 'https://haohuo.jinritemai.com',
-        'Referer': 'https://haohuo.jinritemai.com/views/shop/index?id=%s&origin_type=3030005&origin_id=0&new_source_type=47&new_source_id=0&source_type=47&source_id=0&come_from=0&fxg_req_id=' % shop_id
-    }
-    try:
-        response = requests.get(url, headers=headers)
-        if response.status_code == 200:
-            return response.json()
-    except Exception as e:
-        print("请求异常：%s" % str(e))
-        pass
-
-
-def get_goods(goods_id):
-    params = {
-        'id': goods_id,
-        'b_type_new': 0
-    }
-    url = "https://haohuo.snssdk.com/product/fxgajaxstaticitem?" + urlencode(params)
-    header2s = {
-        'user-agent': phton_user_agent,
-        'Referer': 'https://haohuo.snssdk.com/views/product/item2?id=%s' % goods_id,
-    }
-    try:
-        response = requests.get(url, headers=header2s)
-        if response.status_code == 200:
-            return response.json()
-    except Exception as e:
-        print("请求异常：%s" % e)
-        pass
-
-
 # 获取所有分类信息
 def get_category_all():
     params = {

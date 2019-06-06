@@ -169,7 +169,7 @@ if __name__ == '__main__':
                 print("当前对列数：%s" % q_data.qsize())
                 event.set()
         if q_category.empty() and q_data.empty():
-            time.sleep(30)
+            time.sleep(10)
             if q_category.empty() and q_data.empty():
                 print("退出")
                 break
