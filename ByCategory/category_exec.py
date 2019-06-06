@@ -106,6 +106,7 @@ async def exec_data(item, cids, semaphore):
             await tmp.save()
 
 
+# 按照分类更新数据
 if __name__ == '__main__':
     start = datetime.datetime.now()
     loop = asyncio.get_event_loop()
