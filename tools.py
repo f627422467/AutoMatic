@@ -73,7 +73,8 @@ async def get_goods_by_category(cids, id, parentid, page):
     headers = utils.get_defind_headers()
     headers['User-Agent'] = utils.random_agent()
     headers['Origin'] = 'https://haohuo.jinritemai.com'
-    headers['Referer'] = 'https://haohuo.jinritemai.com/views/channel/categorychoose?cids=%s&parent_id=%s&id=%s&fresh_come=undefined&origin_type=3030005&origin_id=0&new_source_type=100&new_source_id=0&source_type=100&source_id=0&come_from=0' % (
+    headers[
+        'Referer'] = 'https://haohuo.jinritemai.com/views/channel/categorychoose?cids=%s&parent_id=%s&id=%s&fresh_come=undefined&origin_type=3030005&origin_id=0&new_source_type=100&new_source_id=0&source_type=100&source_id=0&come_from=0' % (
         cids, parentid, id)
     proxy = utils.get_proxies()
     return await utils.aiohttp_get(url, headers, proxy)
@@ -127,6 +128,15 @@ def get_temp_table():
     time_now = datetime.datetime.now().strftime("%Y%m%d")
     return "tmp_%s" % time_now
 
+
+# TODO
+# 获取头条榜单
+
+# 获取好货
+
+# 获取推荐精选
+
+# 值点精选
 
 if __name__ == '__main__':
     print(get_temp_table())
