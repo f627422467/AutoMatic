@@ -73,8 +73,7 @@ async def get_goods_by_category(cids, id, parentid, page):
     headers = utils.get_defind_headers()
     headers['User-Agent'] = utils.random_agent()
     headers['Origin'] = 'https://haohuo.jinritemai.com'
-    headers[
-        'Referer'] = 'https://haohuo.jinritemai.com/views/channel/categorychoose?cids=%s&parent_id=%s&id=%s&fresh_come=undefined&origin_type=3030005&origin_id=0&new_source_type=100&new_source_id=0&source_type=100&source_id=0&come_from=0' % (
+    headers['Referer'] = 'https://haohuo.jinritemai.com/views/channel/categorychoose?cids=%s&parent_id=%s&id=%s&fresh_come=undefined&origin_type=3030005&origin_id=0&new_source_type=100&new_source_id=0&source_type=100&source_id=0&come_from=0' % (
         cids, parentid, id)
     proxy = utils.get_proxies()
     return await utils.aiohttp_get(url, headers, proxy)
@@ -89,7 +88,7 @@ async def get_goods_by_id(goods_id):
     url = "https://haohuo.snssdk.com/product/fxgajaxstaticitem?" + urlencode(params)
     headers = utils.get_defind_headers()
     headers['User-Agent'] = utils.random_agent()
-    headers['Referer'] = 'https://haohuo.snssdk.com/views/product/item2?id=%s' % goods_id,
+    headers['Referer'] = 'https://haohuo.snssdk.com/views/product/item2?id=%s' % goods_id
     proxy = utils.get_proxies()
     return await utils.aiohttp_get(url, headers, proxy)
 

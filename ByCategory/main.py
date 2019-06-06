@@ -23,7 +23,7 @@ async def check_shop(shop_id):
 
 
 async def get_shop_by_goods(goods_id):
-    item = await tools.aiohttp_get_goods_by_id(goods_id)
+    item = await tools.get_goods_by_id(goods_id)
     if not item or not item.get('data'):
         return
     if not item.get('data').get('name') or item.get('data').get('name') == '':
