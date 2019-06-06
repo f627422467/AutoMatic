@@ -10,6 +10,7 @@ from Models.Categorys import Category_Cid
 from config import configs
 import time
 import datetime
+import sys
 
 
 async def exec_data(item, cids, semaphore):
@@ -68,11 +69,11 @@ async def exec_data(item, cids, semaphore):
             await tmp.save()
 
 
-# 按照既有店铺更新商品
+# 按照给定时间更新
 if __name__ == '__main__':
 
-    # query_time = str(sys.argv[1])
-    query_time = '2019-06-07 00:00:00'
+    query_time = str(sys.argv[1])
+    # query_time = '2019-06-07 00:00:00'
     print(query_time)
     start = datetime.datetime.now()
     loop = asyncio.get_event_loop()

@@ -69,7 +69,7 @@ async def exec_data(item, cids, semaphore):
             await tmp.save()
 
 
-# 按照既有店铺更新商品
+# 更新当日热销
 if __name__ == '__main__':
 
     start = datetime.datetime.now()
