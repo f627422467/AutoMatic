@@ -34,5 +34,6 @@ class Goods_Tmp(orm.Model):
     id = orm.IntegerField(primary_key=True)
     goods_id = orm.IntegerField(primary_key=False)
     add_num = orm.IntegerField(primary_key=False)
+    sell_num = orm.IntegerField(primary_key=False)
     edit_time = orm.DateTimeField()
 

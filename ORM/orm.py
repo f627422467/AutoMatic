@@ -201,6 +201,7 @@ class Model(dict, metaclass=ModelMetaclass):
         if orderBy:
             sql.append('order by')
             sql.append(orderBy)
+            sql.append('desc')
         limit = kw.get('limit', None)
         if limit is not None:
             sql.append('limit')
@@ -238,6 +239,19 @@ class Model(dict, metaclass=ModelMetaclass):
     async def find(cls, pk):
         ' find object by primary key. '
         rs = await select('%s where `%s`=?' % (cls.__select__, cls.__primary_key__), [pk], 1)
+        if len(rs) == 0:
+            return None
+        return cls(**rs[0])
+
+    @classmethod
+    async def find_one(cls, where=None, args=None):
+        sql = [cls.__select__]
+        if where:
+            sql.append('where')
+            sql.append(where)
+        if args is None:
+            args = []
+        rs = await select(' '.join(sql), args)
         if len(rs) == 0:
             return None
         return cls(**rs[0])

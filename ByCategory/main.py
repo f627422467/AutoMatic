@@ -1,0 +1,178 @@
+from ByCategory import category_producer
+import threading
+import queue
+import asyncio
+from ORM import orm
+from Models.Shop import Shop
+from Models.Goods import Goods, Goods_Item, Goods_Tmp
+from Models.Categorys import Category_Cid, Categorys
+from config import configs
+import time
+import datetime
+import tools
+
+
+async def check_shop(shop_id):
+    shop_url = 'https://haohuo.snssdk.com/views/shop/index?id=' + shop_id
+    shop = await Shop.findAll('shop_id=?', [shop_id])
+    if len(shop) == 0:
+        shop = Shop(shop_id=shop_id, shop_url=shop_url)
+        shop.id = await shop.save()
+        return shop
+    return shop[0]
+
+
+async def get_shop_by_goods(goods_id):
+    item = await tools.aiohttp_get_goods_by_id(goods_id)
+    if not item or not item.get('data'):
+        return
+    if not item.get('data').get('name') or item.get('data').get('name') == '':
+        return
+    shop_id = item.get('data').get('shop_id')
+    await check_shop(shop_id)
+
+
+async def exec_data(item, cids, semaphore):
+    async with semaphore:
+        sell_num = item.get('sell_num')
+        goods_id = item.get('product_id')
+        shop_id = item.get('shop_id')
+        await get_shop_by_goods(goods_id)
+        goods_price = item.get('goods_price')
+        goods_name = item.get('goods_name')
+        cid = item.get('cid')
+        if not cids.__contains__(cid):
+            cid = item.get('second_cid')
+        goods_picture_url = item.get('image')
+        goods_url = 'https://haohuo.snssdk.com/views/product/item?id=' + goods_id
+        is_add = False
+        goods = await Goods.find_one('goods_id=?', goods_id)
+        if goods:
+            # 修改
+            time_now = datetime.datetime.now().strftime("%Y-%m-%d")
+            time_last_edit = goods.edit_time.strftime("%Y-%m-%d")
+            # 较上次增量
+            add_num = sell_num - goods.sell_num
+            goods.shop_id = shop_id
+            goods.cid = cid
+            goods.goods_name = goods_name
+            goods.goods_url = goods_url
+            goods.goods_picture_url = goods_picture_url
+            goods.goods_price = goods_price
+            if time_now != time_last_edit:
+                goods.add_num = 0
+            else:
+                goods.add_num = goods.add_num + add_num
+            goods.sell_num = sell_num
+            if goods.item_last_sell_num is None:
+                goods.item_last_sell_num = goods.sell_num
+            goods.edit_time = datetime.datetime.now()
+
+            item_add_num = sell_num - goods.item_last_sell_num
+            if item_add_num > 100:
+                goods.item_last_sell_num = sell_num
+            await goods.update()
+        else:
+            # 新增
+            is_add = True
+            item_add_num = 0
+            goods = Goods()
+            goods.shop_id = shop_id
+            goods.goods_id = goods_id
+            goods.goods_name = goods_name
+            goods.goods_url = goods_url
+            goods.goods_picture_url = goods_picture_url
+            goods.goods_price = goods_price
+            goods.cid = cid
+            goods.add_num = 0
+            goods.sell_num = sell_num
+            goods.item_last_sell_num = sell_num
+            goods.id = await goods.save()
+            if goods.id == 0:
+                is_add = False
+        if is_add or item_add_num >= 100:
+            goods_item = Goods_Item()
+            goods_item.goods_id = goods.id
+            goods_item.sell_num = sell_num
+            goods_item.add_num = item_add_num
+            await goods_item.save()
+        if is_add or goods.add_num > 0:
+            await Goods_Tmp.del_by('goods_id=?', goods.id)
+            tmp = Goods_Tmp()
+            tmp.goods_id = goods.id
+            tmp.add_num = goods.add_num
+            tmp.sell_num = goods.sell_num
+            tmp.edit_time = datetime.datetime.now()
+            await tmp.save()
+
+
+if __name__ == '__main__':
+    start = datetime.datetime.now()
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(orm.create_pool(loop=loop, **configs.db))
+    categorys = loop.run_until_complete(Categorys.findAll('parent_id != ?', "0"))
+    categoryDtos = []
+    cids = []
+    for category in categorys:
+        categoryDto = {}
+        category_cids = loop.run_until_complete(Category_Cid.findAll('category_id=?', category.id))
+        for category_cid in category_cids:
+            if not cids.__contains__(category_cid.cid):
+                cids.append(category_cid.cid)
+        categoryDto["id"] = category.id
+        categoryDto["parent_id"] = category.parent_id
+        num_list_new = [str(x) for x in cids]
+        categoryDto["cids"] = ','.join(num_list_new)
+        categoryDtos.append(categoryDto)
+
+    q_category = queue.Queue(maxsize=0)
+    for categoryDto in categoryDtos:
+        q_category.put_nowait(categoryDto)
+    print("分类总数%s" % q_category.qsize())
+
+    # 初始化
+    q_data = queue.Queue(maxsize=30000)
+    global_goods_ids = []
+    event = threading.Event()
+    lock = threading.Lock()
+
+    if event.isSet:
+        event.clear()
+
+    for i in range(5):
+        p = category_producer.Producer(i, q_category, q_data, event, global_goods_ids)
+        p.start()
+    semaphore = asyncio.Semaphore(500)
+    while True:
+        if q_data.full():
+            tasks = []
+            for i in range(q_data.qsize() - 50):
+                item = q_data.get()
+                tasks.append(asyncio.ensure_future(exec_data(item, cids, semaphore)))
+                q_data.task_done()
+            if len(tasks) > 0:
+                print("开始任务：%s，数量：%s" % (datetime.datetime.now(), len(tasks)))
+                dones, pendings = loop.run_until_complete(asyncio.wait(tasks))
+                print("完成的任务数：%s,时间点：%s" % (len(dones), datetime.datetime.now()))
+                print("当前对列数：%s" % q_data.qsize())
+                event.set()
+        else:
+            tasks = []
+            for i in range(q_data.qsize()):
+                item = q_data.get()
+                tasks.append(asyncio.ensure_future(exec_data(item, cids, semaphore)))
+                q_data.task_done()
+            if len(tasks) > 0:
+                print("开始任务：%s，数量：%s" % (datetime.datetime.now(), len(tasks)))
+                dones, pendings = loop.run_until_complete(asyncio.wait(tasks))
+                print("完成的任务数：%s,时间点：%s" % (len(dones), datetime.datetime.now()))
+                print("当前对列数：%s" % q_data.qsize())
+                event.set()
+        if q_category.empty() and q_data.empty():
+            time.sleep(30)
+            if q_category.empty() and q_data.empty():
+                print("退出")
+                break
+    q_data.join()
+    end = datetime.datetime.now()
+    print('Cost {} seconds'.format(end - start))

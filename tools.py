@@ -2,46 +2,138 @@ from urllib.parse import urlencode
 import requests
 import aiohttp
 import datetime
+import utils
 
-pc_user_agent =  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.119 Safari/537.36'
+pc_user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.119 Safari/537.36'
 
 phton_user_agent = 'Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A372 Safari/604.1'
 
+proxyHost = "58.218.201.122"
+proxyPort = "2436"
+
+proxyMeta = "http://%(host)s:%(port)s" % {
+    "host": proxyHost,
+    "port": proxyPort,
+}
+
+proxies = {
+    "http": proxyMeta,
+    "https": proxyMeta,
+}
+
+proxy = "http://58.218.200.248:7861"
+
+# 通过店铺获取全部商品
+async def get_goods_by_shop(shop_id, page):
+    params = {
+        'shop_id': shop_id,
+        'page': page,
+        'pageSize': 20,
+        'b_type_new': 0,
+        'type': 5,
+        'sort': 1
+    }
+    url = 'https://haohuo.snssdk.com/productcategory/getShopList?' + urlencode(params)
+    headers = utils.get_defind_headers()
+    headers['User-Agent'] = utils.random_agent()
+    headers['Origin'] = 'https://haohuo.jinritemai.com'
+    headers['Referer'] = 'https://haohuo.jinritemai.com/views/shop/index?id=%s' % shop_id
+    proxy = utils.get_proxies()
+    return await utils.aiohttp_get(url, headers, proxy)
 
 
-#通过店铺获取商品
+# 通过店铺获取商品
 async def aiohttp_get_page(shop_id, page):
     params = {
         'shop_id': shop_id,
         'page': page,
-        'pageSize': 100,
+        'pageSize': 20,
         'b_type_new': 0,
-        'type':5,
-        'sort':1
+        'type': 5,
+        'sort': 1
     }
     # url = 'https://haohuo.snssdk.com/shop/goodsList?' + urlencode(params)
     url = 'https://haohuo.snssdk.com/productcategory/getShopList?' + urlencode(params)
     headers = {
         'user-agent': phton_user_agent,
         'Origin': 'https://haohuo.jinritemai.com',
-        'Referer': 'https://haohuo.jinritemai.com/views/shop/index?id=%s' %shop_id
+        'Referer': 'https://haohuo.jinritemai.com/views/shop/index?id=%s' % shop_id,
+        'Accept-Encoding': 'gzip,deflate,sdch',
     }
     async with aiohttp.ClientSession() as session:
         try:
-            async with session.get(url,headers=headers,timeout=60) as resp:
+            async with session.get(url, headers=headers, proxy=proxy, timeout=60) as resp:
                 if resp.status == 200:
                     return await resp.json()
         except Exception as e:
             print("请求异常：%s" % str(e))
             pass
 
+# 通过店铺获取首页商品
+async def get_first_goods_by_shop(shop_id, page):
+    params = {
+        'shop_id': shop_id,
+        'page': page,
+        'pageSize': 20,
+        'b_type_new': 0,
+    }
+    url = 'https://haohuo.snssdk.com/shop/goodsList?' + urlencode(params)
+    headers = utils.get_defind_headers()
+    headers['User-Agent'] = utils.random_agent()
+    headers['Origin'] = 'https://haohuo.jinritemai.com'
+    headers['Referer'] = 'https://haohuo.jinritemai.com/views/shop/index?id=%s' % shop_id
+    proxy = utils.get_proxies()
+    return await utils.aiohttp_get(url, headers, proxy)
 
-#通过分类获取商品
-async def aiohttp_get_goods_by_cid(cids,id,parentid, page):
+# 店铺首页
+async def aiohttp_get_first_page(shop_id, page):
+    params = {
+        'shop_id': shop_id,
+        'page': page,
+        'pageSize': 20,
+        'b_type_new': 0,
+    }
+    # url = 'https://haohuo.snssdk.com/shop/goodsList?' + urlencode(params)
+    url = 'https://haohuo.snssdk.com/shop/goodsList?' + urlencode(params)
+    headers = {
+        'user-agent': phton_user_agent,
+        'Origin': 'https://haohuo.jinritemai.com',
+        'Referer': 'https://haohuo.jinritemai.com/views/shop/index?id=%s' % shop_id,
+        'Accept-Encoding': 'gzip,deflate,sdch',
+    }
+    async with aiohttp.ClientSession() as session:
+        try:
+            async with session.get(url, headers=headers, proxy=proxy, timeout=60) as resp:
+                if resp.status == 200:
+                    return await resp.json()
+        except Exception as e:
+            print("请求异常：%s" % str(e))
+            pass
+
+# 通过分类获取商品
+async def get_goods_by_category(cids, id, parentid, page):
     params = {
         'second_cid': cids,
         'type': 5,
-        'sort': 1,#销量排序
+        'sort': 1,  # 销量排序
+        'page': page,
+        'pageSize': 10
+    }
+    url = "https://haohuo.snssdk.com/productcategory/getList?" + urlencode(params)
+    headers = utils.get_defind_headers()
+    headers['User-Agent'] = utils.random_agent()
+    headers['Origin'] = 'https://haohuo.jinritemai.com'
+    headers['Referer'] =  'https://haohuo.jinritemai.com/views/channel/categorychoose?cids=%s&parent_id=%s&id=%s&fresh_come=undefined&origin_type=3030005&origin_id=0&new_source_type=100&new_source_id=0&source_type=100&source_id=0&come_from=0' % (
+            cids, parentid, id)
+    proxy = utils.get_proxies()
+    return await utils.aiohttp_get(url, headers, proxy)
+
+# 通过分类获取商品
+async def aiohttp_get_goods_by_cid(cids, id, parentid, page):
+    params = {
+        'second_cid': cids,
+        'type': 5,
+        'sort': 1,  # 销量排序
         'page': page,
         'pageSize': 10
     }
@@ -49,11 +141,12 @@ async def aiohttp_get_goods_by_cid(cids,id,parentid, page):
     headers = {
         'user-agent': phton_user_agent,
         'Origin': 'https://haohuo.jinritemai.com',
-        'Referer': 'https://haohuo.jinritemai.com/views/channel/categorychoose?cids=%s&parent_id=%s&id=%s&fresh_come=undefined&origin_type=3030005&origin_id=0&new_source_type=100&new_source_id=0&source_type=100&source_id=0&come_from=0' % (cids,parentid,id)
+        'Referer': 'https://haohuo.jinritemai.com/views/channel/categorychoose?cids=%s&parent_id=%s&id=%s&fresh_come=undefined&origin_type=3030005&origin_id=0&new_source_type=100&new_source_id=0&source_type=100&source_id=0&come_from=0' % (
+            cids, parentid, id)
     }
     async with aiohttp.ClientSession() as session:
         try:
-            async with session.get(url,headers=headers,timeout=60) as resp:
+            async with session.get(url, headers=headers, timeout=600) as resp:
                 if resp.status == 200:
                     return await resp.json()
         except Exception as e:
@@ -61,7 +154,20 @@ async def aiohttp_get_goods_by_cid(cids,id,parentid, page):
             pass
 
 
-#通过商品ID更新商品
+# 通过商品ID更新商品
+async def get_goods_by_id(goods_id):
+    params = {
+        'id': goods_id,
+        'b_type_new': 0
+    }
+    url = "https://haohuo.snssdk.com/product/fxgajaxstaticitem?" + urlencode(params)
+    headers = utils.get_defind_headers()
+    headers['User-Agent'] = utils.random_agent()
+    headers['Referer'] = 'https://haohuo.snssdk.com/views/product/item2?id=%s' % goods_id,
+    proxy = utils.get_proxies()
+    return await utils.aiohttp_get(url, headers, proxy)
+
+# 通过商品ID更新商品
 async def aiohttp_get_goods_by_id(goods_id):
     params = {
         'id': goods_id,
@@ -74,7 +180,7 @@ async def aiohttp_get_goods_by_id(goods_id):
     }
     async with aiohttp.ClientSession() as session:
         try:
-            async with session.get(url,headers=header2s,timeout=60) as resp:
+            async with session.get(url, headers=header2s, timeout=60) as resp:
                 if resp.status == 200:
                     return await resp.json()
         except Exception as e:
@@ -90,7 +196,11 @@ def get_page(shop_id, page):
     }
     url = 'https://haohuo.snssdk.com/shop/goodsList?' + urlencode(params)
     headers = {
-        'user-agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36",
+        'Accept': 'application/json, text/plain, */*',
+        'user-agent': phton_user_agent,
+        'connection': 'keep-alive',
+        'Accept-Encoding': 'gzip,deflate,sdch',
+        'Accept-Language': 'en-US,en;q=0.8',
         'Origin': 'https://haohuo.jinritemai.com',
         'Referer': 'https://haohuo.jinritemai.com/views/shop/index?id=%s&origin_type=3030005&origin_id=0&new_source_type=47&new_source_id=0&source_type=47&source_id=0&come_from=0&fxg_req_id=' % shop_id
     }
@@ -121,7 +231,8 @@ def get_goods(goods_id):
         print("请求异常：%s" % e)
         pass
 
-#获取所有分类信息
+
+# 获取所有分类信息
 def get_category_all():
     params = {
         'version': 1,
@@ -141,13 +252,15 @@ def get_category_all():
         print("请求异常：%s" % e)
         pass
 
-def list_to_dict(lists,key):
+
+def list_to_dict(lists, key):
     dit = {}
     for element in lists:
         if key not in element.__fields__ and key is not element.__primary_key__:
             raise Exception("Key %s 不存在！" % key)
         dit[element[key]] = element
     return dit
+
 
 def get_temp_table():
     time_now = datetime.datetime.now().strftime("%Y%m%d")
