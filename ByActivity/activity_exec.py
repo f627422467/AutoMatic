@@ -1,4 +1,4 @@
-from ByTmp import tmp_producer
+from ByTop100 import top100_producer
 import consumer
 import threading
 import queue
@@ -11,6 +11,17 @@ from config import configs
 import time
 import datetime
 import tools
+import sys
+
+
+async def check_shop(shop_id):
+    shop_url = 'https://haohuo.snssdk.com/views/shop/index?id=' + shop_id
+    shop = await Shop.findAll('shop_id=?', [shop_id])
+    if len(shop) == 0:
+        shop = Shop(shop_id=shop_id, shop_url=shop_url)
+        shop.id = await shop.save()
+        return shop
+    return shop[0]
 
 
 async def exec_data(item, cids, semaphore):
@@ -20,13 +31,15 @@ async def exec_data(item, cids, semaphore):
         if not goods_id:
             return
         shop_id = item.get('shop_id')
-        goods_price = item.get('goods_price')
-        goods_name = item.get('goods_name')
+        await check_shop(shop_id)
+        goods_price = item.get('discount_price') / 100
+        goods_name = item.get('name')
         cid = item.get('cid')
         if not cids.__contains__(cid):
             cid = item.get('second_cid')
-        goods_picture_url = item.get('image')
+        goods_picture_url = item.get('img')
         goods_url = 'https://haohuo.snssdk.com/views/product/item?id=' + goods_id
+        is_add = False
         goods = await Goods.find_one('goods_id=?', goods_id)
         if goods:
             # 修改
@@ -54,14 +67,30 @@ async def exec_data(item, cids, semaphore):
                 goods.item_last_sell_num = sell_num
             await goods.update()
         else:
-            raise Exception("出错！数据库中没有查询到相应值")
-        if item_add_num >= 100:
+            # 新增
+            is_add = True
+            item_add_num = 0
+            goods = Goods()
+            goods.shop_id = shop_id
+            goods.goods_id = goods_id
+            goods.goods_name = goods_name
+            goods.goods_url = goods_url
+            goods.goods_picture_url = goods_picture_url
+            goods.goods_price = goods_price
+            goods.cid = cid
+            goods.add_num = 0
+            goods.sell_num = sell_num
+            goods.item_last_sell_num = sell_num
+            goods.id = await goods.save()
+            if goods.id == 0:
+                is_add = False
+        if is_add or item_add_num >= 100:
             goods_item = Goods_Item()
             goods_item.goods_id = goods.id
             goods_item.sell_num = sell_num
             goods_item.add_num = item_add_num
             await goods_item.save()
-        if goods.add_num > 0:
+        if is_add or goods.add_num > 0:
             await Goods_Tmp.del_by('goods_id=?', goods.id)
             tmp = Goods_Tmp()
             tmp.goods_id = goods.id
@@ -71,17 +100,44 @@ async def exec_data(item, cids, semaphore):
             await tmp.save()
 
 
-# 更新当日热销
+# 抓取最新活动，活动的ID，暂时没有获取到，手动写一下
 if __name__ == '__main__':
-
     start = datetime.datetime.now()
     loop = asyncio.get_event_loop()
     loop.run_until_complete(orm.create_pool(loop=loop, **configs.db))
-    goods = loop.run_until_complete(Goods.find_inner(tools.get_temp_table(), 'goods_id'))
-    q_goods = queue.Queue(maxsize=0)
-    for good in goods:
-        q_goods.put_nowait(good.goods_id)
-    print("商品总数%s" % q_goods.qsize())
+
+    # 端午节
+    activity_id = 1559812843258
+    _ = tools.get_random_num(12)
+    json = loop.run_until_complete(tools.get_activity_by_id(activity_id, _))
+    if json is None:
+        sys.exit()
+    if json.get('data') is None or len(json.get('data')) <= 0:
+        sys.exit()
+    if json.get('data').get('cards_list') is None or len(json.get('data').get('cards_list')) <= 0:
+        sys.exit()
+    material_ids = []
+    items = json.get('data').get('cards_list')
+    for item in items:
+        cardType = item.get('cardType')
+        if not cardType == 'goods':
+            continue
+        data = item.get('data')
+        material_id = data.get('id')
+        if material_id:
+            material_ids.append(int(material_id))
+        else:
+            list = data.get('list')
+            for element in list:
+                material_id = element.get('goods').get('id')
+                material_ids.append(int(material_id))
+    if len(material_ids) <= 0:
+        sys.exit()
+
+    q_material = queue.Queue(maxsize=0)
+    for material_id in material_ids:
+        q_material.put_nowait(material_id)
+    print("模块总数%s" % q_material.qsize())
 
     category_cids = loop.run_until_complete(Category_Cid.findAll())
     cids = []
@@ -98,7 +154,7 @@ if __name__ == '__main__':
         event.clear()
 
     for i in range(5):
-        p = tmp_producer.Producer(i, q_goods, q_data, event, global_goods_ids)
+        p = top100_producer.Producer(i, q_material, q_data, event, global_goods_ids, activity_id)
         p.start()
 
     semaphore = asyncio.Semaphore(500)
@@ -127,9 +183,9 @@ if __name__ == '__main__':
                 print("完成的任务数：%s,时间点：%s" % (len(dones), datetime.datetime.now()))
                 print("当前对列数：%s" % q_data.qsize())
                 event.set()
-        if q_goods.empty() and q_data.empty():
-            time.sleep(10)
-            if q_goods.empty() and q_data.empty():
+        if q_material.empty() and q_data.empty():
+            time.sleep(20)
+            if q_material.empty() and q_data.empty():
                 print("退出")
                 break
     q_data.join()
