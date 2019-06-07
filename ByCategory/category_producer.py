@@ -41,8 +41,8 @@ class Producer(threading.Thread):
                 for item in items:
                     sell_num = item.get('sell_num')
                     goods_id = item.get('product_id')
-                    # if sell_num < 10:
-                    #     continue
+                    if sell_num < 1:
+                        continue
                     if self.global_goods_ids.__contains__(goods_id):
                         continue
                     # 判断栈是否已经满

@@ -169,10 +169,28 @@ async def get_goods_by_material_id(activity_id, _, material_id, page):
     proxy = utils.get_proxies()
     return await utils.aiohttp_get(url, headers, proxy)
 
+# 获取推荐精选
+async def get_recommend_goods(page):
+    params = {
+        'cids': '',
+        'page': page,
+        'size': 10,
+        'addActivity': 1,
+        'app_id':'undefined',
+        'area_type':5,
+        'area_id':0,
+        'origin_type':303,
+        'b_type_new': 0
+    }
+    url = "https://haohuo.snssdk.com/channel/ajaxGetGoods?" + urlencode(params)
+    headers = utils.get_defind_headers()
+    headers['User-Agent'] = utils.random_agent()
+    headers['Origin'] = 'https://haohuo.jinritemai.com'
+    headers['Referer'] = 'https://haohuo.jinritemai.com/channel/list?origin_type=303'
+    proxy = utils.get_proxies()
+    return await utils.aiohttp_get(url, headers, proxy)
 
 # 获取好货
-
-# 获取推荐精选
 
 # 值点精选
 
