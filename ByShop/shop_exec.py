@@ -16,6 +16,8 @@ async def exec_data(item, cids, semaphore):
     async with semaphore:
         sell_num = item.get('sell_num')
         goods_id = item.get('product_id')
+        if not goods_id:
+            return
         shop_id = item.get('shop_id')
         goods_price = item.get('goods_price')
         goods_name = item.get('goods_name')

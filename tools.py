@@ -3,6 +3,7 @@ import requests
 import aiohttp
 import datetime
 import utils
+import random
 
 pc_user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.119 Safari/537.36'
 
@@ -80,7 +81,7 @@ async def get_goods_by_category(cids, id, parentid, page):
     return await utils.aiohttp_get(url, headers, proxy)
 
 
-# 通过商品ID更新商品
+# 通过商品ID更新商品(User-Agent，必须使用手机的，否则抓不到数据)
 async def get_goods_by_id(goods_id):
     params = {
         'id': goods_id,
@@ -89,7 +90,8 @@ async def get_goods_by_id(goods_id):
     url = "https://haohuo.snssdk.com/product/fxgajaxstaticitem?" + urlencode(params)
     headers = utils.get_defind_headers()
     headers['User-Agent'] = utils.random_agent()
-    headers['Referer'] = 'https://haohuo.snssdk.com/views/product/item2?id=%s' % goods_id
+    headers['Origin'] = 'https://haohuo.jinritemai.com'
+    headers['Referer'] = 'https://haohuo.jinritemai.com/views/product/item2?id=%s' % goods_id
     proxy = utils.get_proxies()
     return await utils.aiohttp_get(url, headers, proxy)
 
@@ -129,8 +131,44 @@ def get_temp_table():
     return "tmp_%s" % time_now
 
 
+def get_random_num(num):
+    return ''.join(str(random.choice(range(10))) for _ in range(num))
+
+
 # TODO
 # 获取头条榜单
+# 活动ID，随机12位。115118308595
+async def get_activity_by_id(activity_id, _):
+    params = {
+        'id': activity_id,
+        '_': _,
+        'b_type_new': 0
+    }
+    url = "https://bolt.jinritemai.com/api/activity/detail?" + urlencode(params)
+    headers = utils.get_defind_headers()
+    headers['User-Agent'] = utils.random_agent()
+    headers['Referer'] = 'https://bolt.jinritemai.com/h5/activity?id=%s' % activity_id
+    proxy = utils.get_proxies()
+    return await utils.aiohttp_get(url, headers, proxy)
+
+
+# 通过material_id查询
+async def get_goods_by_material_id(activity_id, _, material_id, page):
+    params = {
+        'material_id': material_id,
+        'page': page,
+        'size': 10,
+        '_': _,
+        'b_type_new': 0
+    }
+    url = "https://luban.snssdk.com/bolt/productlist?" + urlencode(params)
+    headers = utils.get_defind_headers()
+    headers['User-Agent'] = utils.random_agent()
+    headers['Origin'] = 'https://bolt.jinritemai.com'
+    headers['Referer'] = 'https://bolt.jinritemai.com/h5/activity?id=%s' % activity_id
+    proxy = utils.get_proxies()
+    return await utils.aiohttp_get(url, headers, proxy)
+
 
 # 获取好货
 
@@ -139,4 +177,4 @@ def get_temp_table():
 # 值点精选
 
 if __name__ == '__main__':
-    print(get_temp_table())
+    print(''.join(str(random.choice(range(10))) for _ in range(12)))

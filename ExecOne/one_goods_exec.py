@@ -11,6 +11,9 @@ import datetime
 async def parse_page(goods_id,goods_id_object):
     item = await tools.get_goods_by_id(goods_id)
     sell_num = item.get('data').get('sell_num')
+    product_id = item.get('data').get('product_id')
+    if not product_id:
+        return
     goods = await Goods.find_one('goods_id=?', goods_id)
     if goods:
         # 修改
@@ -73,7 +76,7 @@ def done_callback(loop, futu):
 if __name__ == '__main__':
     goods_id = str(sys.argv[1])
     print(goods_id)
-    #goods_id = str(3338734759798015953)
+    # goods_id = str(3281941925434892962)
     loop = asyncio.get_event_loop()
     futus = asyncio.gather(init(loop,goods_id))
     futus.add_done_callback(functools.partial(done_callback, loop))
