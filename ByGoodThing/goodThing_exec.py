@@ -1,4 +1,4 @@
-from ByCategory import category_producer
+from ByGoodThing import goodThing_producer
 import threading
 import queue
 import asyncio
@@ -22,31 +22,20 @@ async def check_shop(shop_id):
     return shop[0]
 
 
-async def get_shop_by_goods(goods_id):
-    item = await tools.get_goods_by_id(goods_id)
-    if not item or not item.get('data'):
-        return
-    if not item.get('data').get('name') or item.get('data').get('name') == '':
-        return
-    shop_id = item.get('data').get('shop_id')
-    await check_shop(shop_id)
-    return shop_id
-
-
 async def exec_data(item, cids, semaphore):
     async with semaphore:
         sell_num = item.get('sell_num')
         goods_id = item.get('product_id')
         if not goods_id:
             return
-        # shop_id = item.get('shop_id')
-        shop_id = await get_shop_by_goods(goods_id)
-        goods_price = item.get('goods_price')
-        goods_name = item.get('goods_name')
-        cid = item.get('cid')
+        shop_id = item.get('shop_id')
+        await check_shop(goods_id)
+        goods_price = item.get('discount_price')/100
+        goods_name = item.get('name')
+        cid = item.get('third_cid')
         if not cids.__contains__(cid):
             cid = item.get('second_cid')
-        goods_picture_url = item.get('image')
+        goods_picture_url = item.get('img')
         goods_url = 'https://haohuo.snssdk.com/views/product/item?id=' + goods_id
         is_add = False
         goods = await Goods.find_one('goods_id=?', goods_id)
@@ -109,30 +98,22 @@ async def exec_data(item, cids, semaphore):
             await tmp.save()
 
 
-# 按照分类更新数据
+# 按照好货
 if __name__ == '__main__':
     start = datetime.datetime.now()
     loop = asyncio.get_event_loop()
     loop.run_until_complete(orm.create_pool(loop=loop, **configs.db))
-    categorys = loop.run_until_complete(Categorys.findAll('parent_id != ?', "0"))
-    categoryDtos = []
-    cids = []
-    for category in categorys:
-        categoryDto = {}
-        category_cids = loop.run_until_complete(Category_Cid.findAll('category_id=?', category.id))
-        for category_cid in category_cids:
-            if not cids.__contains__(category_cid.cid):
-                cids.append(category_cid.cid)
-        categoryDto["id"] = category.id
-        categoryDto["parent_id"] = category.parent_id
-        num_list_new = [str(x) for x in cids]
-        categoryDto["cids"] = ','.join(num_list_new)
-        categoryDtos.append(categoryDto)
 
-    q_category = queue.Queue(maxsize=0)
-    for categoryDto in categoryDtos:
-        q_category.put_nowait(categoryDto)
-    print("分类总数%s" % q_category.qsize())
+    q_ids = queue.Queue(maxsize=0)
+    for id in [153]:
+        q_ids.put_nowait(id)
+    print("ID总数%s" % q_ids.qsize())
+
+    category_cids = loop.run_until_complete(Category_Cid.findAll())
+    cids = []
+    for category_cid in category_cids:
+        if not cids.__contains__(category_cid.cid):
+            cids.append(category_cid.cid)
 
     # 初始化
     q_data = queue.Queue(maxsize=30000)
@@ -144,7 +125,7 @@ if __name__ == '__main__':
         event.clear()
 
     for i in range(5):
-        p = category_producer.Producer(i, q_category, q_data, event, global_goods_ids)
+        p = goodThing_producer.Producer(i, q_ids, q_data, event, global_goods_ids)
         p.start()
     semaphore = asyncio.Semaphore(500)
     while True:
@@ -172,9 +153,9 @@ if __name__ == '__main__':
                 print("完成的任务数：%s,时间点：%s" % (len(dones), datetime.datetime.now()))
                 print("当前对列数：%s" % q_data.qsize())
                 event.set()
-        if q_category.empty() and q_data.empty():
+        if q_ids.empty() and q_data.empty():
             time.sleep(10)
-            if q_category.empty() and q_data.empty():
+            if q_ids.empty() and q_data.empty():
                 print("退出")
                 break
     q_data.join()

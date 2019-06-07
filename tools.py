@@ -191,8 +191,25 @@ async def get_recommend_goods(page):
     return await utils.aiohttp_get(url, headers, proxy)
 
 # 获取好货
+async def get_activity_goods(id,page):
+    params = {
+        'id': id,
+        'page': page,
+        'size': 10,
+        'b_type_new': 0
+    }
+    url = "https://haohuo.snssdk.com/channel/ajaxActivityGoods?" + urlencode(params)
+    headers = utils.get_defind_headers()
+    headers['User-Agent'] = utils.random_agent()
+    headers['Origin'] = 'https://haohuo.jinritemai.com'
+    headers['Referer'] = 'https://haohuo.jinritemai.com/views/channel/flash?a=1&origin_type=3030005&origin_id=0&new_source_type=5&new_source_id=1&source_type=5&source_id=1&come_from=0'
+    proxy = utils.get_proxies()
+    return await utils.aiohttp_get(url, headers, proxy)
+
 
 # 值点精选
+
+#秒杀
 
 if __name__ == '__main__':
     print(''.join(str(random.choice(range(10))) for _ in range(12)))
