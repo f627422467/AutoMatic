@@ -29,7 +29,7 @@ async def exec_data(item, cids, semaphore):
         if not goods_id:
             return
         shop_id = item.get('shop_id')
-        await check_shop(goods_id)
+        await check_shop(shop_id)
         goods_price = item.get('discount_price')/100
         goods_name = item.get('name')
         cid = item.get('third_cid')

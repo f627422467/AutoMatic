@@ -13,7 +13,7 @@ import datetime
 import tools
 
 
-async def check_shop(shop_id,shop_id_object):
+async def check_shop(shop_id, shop_id_object):
     shop_url = 'https://haohuo.snssdk.com/views/shop/index?id=' + shop_id
     shop = shop_id_object.get(shop_id)
     if not shop:
@@ -22,15 +22,16 @@ async def check_shop(shop_id,shop_id_object):
         return shop
     return shop
 
-async def exec_data(item, cids, semaphore,shop_id_object,all_goods):
+
+async def exec_data(item, cids, semaphore, shop_id_object, goods):
     async with semaphore:
         sell_num = item.get('sell_num')
         goods_id = item.get('product_id')
         if not goods_id:
             return
         shop_id = item.get('shop_id')
-        await check_shop(goods_id,shop_id_object)
-        goods_price = item.get('discount_price')/100
+        await check_shop(shop_id, shop_id_object)
+        goods_price = item.get('discount_price') / 100
         goods_name = item.get('name')
         cid = item.get('third_cid')
         if not cids.__contains__(cid):
@@ -39,7 +40,7 @@ async def exec_data(item, cids, semaphore,shop_id_object,all_goods):
         goods_url = 'https://haohuo.snssdk.com/views/product/item?id=' + goods_id
         is_add = False
         # goods = await Goods.find_one('goods_id=?', goods_id)
-        goods = all_goods.get(goods_id)
+        # goods = goods_id_object.get(goods_id)
         if goods:
             # 修改
             time_now = datetime.datetime.now().strftime("%Y-%m-%d")
@@ -119,6 +120,9 @@ if __name__ == '__main__':
 
     shop_id_object = tools.list_to_dict(shops, 'shop_id')
 
+    all_goods = loop.run_until_complete(Goods.findAll())
+    goods_id_object = tools.list_to_dict(all_goods, "goods_id")
+
     # 初始化
     q_data = queue.Queue(maxsize=30000)
     global_goods_ids = []
@@ -128,7 +132,7 @@ if __name__ == '__main__':
     if event.isSet:
         event.clear()
 
-    for i in range(500):
+    for i in range(10):
         p = shop_producer.Producer(i, q_shops, q_data, event, global_goods_ids)
         p.start()
 
@@ -148,17 +152,12 @@ if __name__ == '__main__':
         else:
             if q_data.full():
                 tasks = []
-                items = []
-                all_goods_ids = []
                 for i in range(q_data.qsize()):
                     item = q_data.get()
-                    items.append(item)
-                    all_goods_ids.append(item.get('product_id'))
+                    goods = goods_id_object.get(item.get('product_id'))
+                    tasks.append(
+                        asyncio.ensure_future(exec_data(item, cids, semaphore, shop_id_object, goods)))
                     q_data.task_done()
-                all_goods = loop.run_until_complete(Goods.findAll('goods_id in (?)',','.join(all_goods_ids)))
-                goods_id_object = tools.list_to_dict(all_goods,"goods_id")
-                for item in items:
-                    tasks.append(asyncio.ensure_future(exec_data(item, cids, semaphore, shop_id_object,all_goods)))
                 if len(tasks) > 0:
                     print("开始任务：%s，数量：%s" % (datetime.datetime.now(), len(tasks)))
                     dones, pendings = loop.run_until_complete(asyncio.wait(tasks))
@@ -167,17 +166,12 @@ if __name__ == '__main__':
                     event.set()
             else:
                 tasks = []
-                items = []
-                all_goods_ids = []
                 for i in range(q_data.qsize()):
                     item = q_data.get()
-                    items.append(item)
-                    all_goods_ids.append(item.get('product_id'))
+                    goods = goods_id_object.get(item.get('product_id'))
+                    tasks.append(
+                        asyncio.ensure_future(exec_data(item, cids, semaphore, shop_id_object, goods)))
                     q_data.task_done()
-                all_goods = loop.run_until_complete(Goods.findAll('goods_id in (?)', ','.join(all_goods_ids)))
-                goods_id_object = tools.list_to_dict(all_goods, "goods_id")
-                for item in items:
-                    tasks.append(asyncio.ensure_future(exec_data(item, cids, semaphore, shop_id_object, all_goods)))
                 if len(tasks) > 0:
                     print("开始任务：%s，数量：%s" % (datetime.datetime.now(), len(tasks)))
                     dones, pendings = loop.run_until_complete(asyncio.wait(tasks))
