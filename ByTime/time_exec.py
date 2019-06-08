@@ -74,8 +74,8 @@ async def exec_data(item, cids, semaphore):
 # 按照给定时间更新
 if __name__ == '__main__':
 
-    query_time = str(sys.argv[1])
-    # query_time = '2019-06-07 00:00:00'
+    # query_time = str(sys.argv[1])
+    query_time = '2019-06-08 14:00:00'
     print(query_time)
     start = datetime.datetime.now()
     loop = asyncio.get_event_loop()
@@ -100,7 +100,7 @@ if __name__ == '__main__':
     if event.isSet:
         event.clear()
 
-    for i in range(5):
+    for i in range(100):
         p = time_producer.Producer(i, q_goods, q_data, event, global_goods_ids)
         p.start()
 

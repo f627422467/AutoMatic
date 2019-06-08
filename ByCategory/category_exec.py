@@ -132,7 +132,7 @@ if __name__ == '__main__':
     if event.isSet:
         event.clear()
 
-    for i in range(5):
+    for i in range(100):
         p = category_producer.Producer(i, q_category, q_data, event, global_goods_ids)
         p.start()
     semaphore = asyncio.Semaphore(500)

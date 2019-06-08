@@ -27,7 +27,7 @@ class Producer(threading.Thread):
             while True:
                 json = loop.run_until_complete(
                     tools.get_goods_by_category(categoryDto["cids"], categoryDto["id"], categoryDto["parent_id"],page))
-                print("%s第%s页" % (categoryDto["id"], page))
+                # print("%s第%s页" % (categoryDto["id"], page))
                 # time.sleep(3)
                 if json is None:
                     print("抓取分类%s完毕，总页数：%s" % (categoryDto["id"], page))
