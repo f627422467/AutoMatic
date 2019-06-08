@@ -279,4 +279,5 @@ async def get_goods_by_campaign_id(campaign_id, page):
 
 
 if __name__ == '__main__':
-    print(''.join(str(random.choice(range(10))) for _ in range(12)))
+    all_goods_ids = [1,5,9,20]
+    print(','.join(all_goods_ids))

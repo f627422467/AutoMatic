@@ -50,6 +50,8 @@ class Producer(threading.Thread):
                     one = loop.run_until_complete(tools.get_goods_by_id(goods_id))
                     if one:
                         item = one.get('data')
+                    else:
+                        continue
                     # 判断栈是否已经满
                     if self.queue.full():
                         print("队列已满，总数%s" % self.queue.qsize())

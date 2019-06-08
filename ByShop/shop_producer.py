@@ -72,7 +72,7 @@ class Producer(threading.Thread):
                 page += 1
             while True:
                 json = loop.run_until_complete(tools.get_goods_by_shop(shop_id, page))
-                print("%s第%s页" % (shop_id, page))
+                # print("%s第%s页" % (shop_id, page))
                 # time.sleep(3)
                 if json is None:
                     print("抓取店铺%s完毕，总页数：%s" % (shop_id, page))
@@ -95,6 +95,9 @@ class Producer(threading.Thread):
                     one = loop.run_until_complete(tools.get_goods_by_id(goods_id))
                     if one:
                         item = one.get('data')
+                    else:
+                        print(item)
+                        continue
                     # 判断栈是否已经满
                     if self.queue.full():
                         print("队列已满，总数%s" % self.queue.qsize())
