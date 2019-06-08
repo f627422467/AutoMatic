@@ -244,7 +244,39 @@ async def get_goods_by_detail_id(material_id, id, page):
     return await utils.aiohttp_get(url, headers, proxy)
 
 
-# 秒杀
+# 秒杀（秒杀场次）
+async def get_kills():
+    params = {
+        'b_type_new': 0
+    }
+    url = "https://haohuo.snssdk.com/seckill/seckillMultiSessionList?" + urlencode(params)
+    headers = utils.get_defind_headers()
+    headers['User-Agent'] = utils.random_agent()
+    headers['Origin'] = 'https://haohuo.jinritemai.com'
+    headers[
+        'Referer'] = 'https://haohuo.jinritemai.com/views/channel/seckill?a=1&origin_type=3030005&origin_id=0&new_source_type=5&new_source_id=1&source_type=5&source_id=1&come_from=0'
+    proxy = utils.get_proxies()
+    return await utils.aiohttp_get(url, headers, proxy)
+
+
+# 根据秒杀场次，获取商品
+async def get_goods_by_campaign_id(campaign_id, page):
+    params = {
+        'campaign_id': campaign_id,
+        'req_id': 1,
+        'page': page,
+        'pageSize': 10,
+        'b_type_new': 0
+    }
+    url = "https://haohuo.snssdk.com/seckill/seckillCampaignGoodsList?" + urlencode(params)
+    headers = utils.get_defind_headers()
+    headers['User-Agent'] = utils.random_agent()
+    headers['Origin'] = 'https://haohuo.jinritemai.com'
+    headers[
+        'Referer'] = 'https://haohuo.jinritemai.com/views/channel/seckill?a=1&origin_type=3030005&origin_id=0&new_source_type=5&new_source_id=1&source_type=5&source_id=1&come_from=0'
+    proxy = utils.get_proxies()
+    return await utils.aiohttp_get(url, headers, proxy)
+
 
 if __name__ == '__main__':
     print(''.join(str(random.choice(range(10))) for _ in range(12)))
