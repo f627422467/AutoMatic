@@ -132,7 +132,7 @@ if __name__ == '__main__':
     if event.isSet:
         event.clear()
 
-    for i in range(10):
+    for i in range(500):
         p = shop_producer.Producer(i, q_shops, q_data, event, global_goods_ids)
         p.start()
 

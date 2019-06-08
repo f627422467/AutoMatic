@@ -72,7 +72,6 @@ class Producer(threading.Thread):
                 page += 1
             page = 0
             while True:
-                print(shop_id, page)
                 json = loop.run_until_complete(tools.get_goods_by_shop(shop_id, page))
                 # print("%s第%s页" % (shop_id, page))
                 # time.sleep(3)
