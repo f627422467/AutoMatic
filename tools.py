@@ -169,6 +169,7 @@ async def get_goods_by_material_id(activity_id, _, material_id, page):
     proxy = utils.get_proxies()
     return await utils.aiohttp_get(url, headers, proxy)
 
+
 # 获取推荐精选
 async def get_recommend_goods(page):
     params = {
@@ -176,10 +177,10 @@ async def get_recommend_goods(page):
         'page': page,
         'size': 10,
         'addActivity': 1,
-        'app_id':'undefined',
-        'area_type':5,
-        'area_id':0,
-        'origin_type':303,
+        'app_id': 'undefined',
+        'area_type': 5,
+        'area_id': 0,
+        'origin_type': 303,
         'b_type_new': 0
     }
     url = "https://haohuo.snssdk.com/channel/ajaxGetGoods?" + urlencode(params)
@@ -190,8 +191,9 @@ async def get_recommend_goods(page):
     proxy = utils.get_proxies()
     return await utils.aiohttp_get(url, headers, proxy)
 
+
 # 获取好货
-async def get_activity_goods(id,page):
+async def get_activity_goods(id, page):
     params = {
         'id': id,
         'page': page,
@@ -202,14 +204,47 @@ async def get_activity_goods(id,page):
     headers = utils.get_defind_headers()
     headers['User-Agent'] = utils.random_agent()
     headers['Origin'] = 'https://haohuo.jinritemai.com'
-    headers['Referer'] = 'https://haohuo.jinritemai.com/views/channel/flash?a=1&origin_type=3030005&origin_id=0&new_source_type=5&new_source_id=1&source_type=5&source_id=1&come_from=0'
+    headers[
+        'Referer'] = 'https://haohuo.jinritemai.com/views/channel/flash?a=1&origin_type=3030005&origin_id=0&new_source_type=5&new_source_id=1&source_type=5&source_id=1&come_from=0'
     proxy = utils.get_proxies()
     return await utils.aiohttp_get(url, headers, proxy)
 
 
-# 值点精选
+# 值点精选，查询分类
+async def get_detail_by_mertial_id(id):
+    params = {
+        'id': id,
+        'b_type_new': 0
+    }
+    url = "https://haohuo.snssdk.com/channel/material?" + urlencode(params)
+    headers = utils.get_defind_headers()
+    headers['User-Agent'] = utils.random_agent()
+    headers['Origin'] = 'https://haohuo.snssdk.com'
+    headers[
+        'Referer'] = 'https://haohuo.snssdk.com/views/channel/material?id=%s&origin_type=3030005&origin_id=0&new_source_type=5&new_source_id=1&source_type=5&source_id=1&come_from=0' % id
+    proxy = utils.get_proxies()
+    return await utils.aiohttp_get(url, headers, proxy)
 
-#秒杀
+
+# 值点精选，根据分类查询商品
+async def get_goods_by_detail_id(material_id, id, page):
+    params = {
+        'material_id': material_id,
+        'id': id,
+        'page': page,
+        'b_type_new': 0
+    }
+    url = "https://haohuo.snssdk.com/channel/materialDetail?" + urlencode(params)
+    headers = utils.get_defind_headers()
+    headers['User-Agent'] = utils.random_agent()
+    headers['Origin'] = 'https://haohuo.snssdk.com'
+    headers[
+        'Referer'] = 'https://haohuo.snssdk.com/views/channel/material?id=%s&origin_type=3030005&origin_id=0&new_source_type=5&new_source_id=1&source_type=5&source_id=1&come_from=0' % id
+    proxy = utils.get_proxies()
+    return await utils.aiohttp_get(url, headers, proxy)
+
+
+# 秒杀
 
 if __name__ == '__main__':
     print(''.join(str(random.choice(range(10))) for _ in range(12)))
