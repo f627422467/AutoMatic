@@ -19,6 +19,7 @@ class Producer(threading.Thread):
         loop = asyncio.new_event_loop()
         while True:
             if self.q_ids.empty():
+                self.event.set()
                 break
             id = self.q_ids.get()
             print("开始抓取ID%s" % id)

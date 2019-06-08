@@ -35,6 +35,7 @@ class Producer(threading.Thread):
                 goods_id = item.get('product_id')
                 if self.global_goods_ids.__contains__(goods_id):
                     continue
+                self.global_goods_ids.append(goods_id)
                 one = loop.run_until_complete(tools.get_goods_by_id(goods_id))
                 if one:
                     item = one.get('data')
@@ -52,14 +53,13 @@ class Producer(threading.Thread):
                     if self.queue.empty():
                         # 未满 向栈添加数据
                         self.queue.put(item)
-                        self.global_goods_ids.append(goods_id)
                         # print("生产数据：%s" + str(item))
                         # 将Flag设置为True
                         self.event.set()
                     else:
                         # 未满 向栈添加数据
                         self.queue.put(item)
+                        self.event.set()
                         # print("生产数据：%s" + str(item))
-                        self.global_goods_ids.append(goods_id)
             page += 1
         print(self.name + "结束")

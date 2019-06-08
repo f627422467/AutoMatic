@@ -1,4 +1,4 @@
-from ByTop100 import top100_producer
+from ByActivity import activity_producer
 import consumer
 import threading
 import queue
@@ -154,40 +154,47 @@ if __name__ == '__main__':
         event.clear()
 
     for i in range(5):
-        p = top100_producer.Producer(i, q_material, q_data, event, global_goods_ids, activity_id)
+        p = activity_producer.Producer(i, q_material, q_data, event, global_goods_ids, activity_id)
         p.start()
 
     semaphore = asyncio.Semaphore(500)
     while True:
-        if q_data.full():
-            tasks = []
-            for i in range(q_data.qsize()):
-                item = q_data.get()
-                tasks.append(asyncio.ensure_future(exec_data(item, cids, semaphore)))
-                q_data.task_done()
-            if len(tasks) > 0:
-                print("开始任务：%s，数量：%s" % (datetime.datetime.now(), len(tasks)))
-                dones, pendings = loop.run_until_complete(asyncio.wait(tasks))
-                print("完成的任务数：%s,时间点：%s" % (len(dones), datetime.datetime.now()))
-                print("当前对列数：%s" % q_data.qsize())
-                event.set()
-        else:
-            tasks = []
-            for i in range(q_data.qsize()):
-                item = q_data.get()
-                tasks.append(asyncio.ensure_future(exec_data(item, cids, semaphore)))
-                q_data.task_done()
-            if len(tasks) > 0:
-                print("开始任务：%s，数量：%s" % (datetime.datetime.now(), len(tasks)))
-                dones, pendings = loop.run_until_complete(asyncio.wait(tasks))
-                print("完成的任务数：%s,时间点：%s" % (len(dones), datetime.datetime.now()))
-                print("当前对列数：%s" % q_data.qsize())
-                event.set()
-        if q_material.empty() and q_data.empty():
-            time.sleep(20)
+        if q_data.empty():
+            # 栈空 线程进入等待
+            event.wait(30)
             if q_material.empty() and q_data.empty():
-                print("退出")
-                break
+                time.sleep(10)
+                if q_material.empty() and q_data.empty():
+                    print("退出")
+                    break
+            # 线程唤醒后将flag设置为False
+            if event.isSet():
+                event.clear()
+        else:
+            if q_data.full():
+                tasks = []
+                for i in range(q_data.qsize()):
+                    item = q_data.get()
+                    tasks.append(asyncio.ensure_future(exec_data(item, cids, semaphore)))
+                    q_data.task_done()
+                if len(tasks) > 0:
+                    print("开始任务：%s，数量：%s" % (datetime.datetime.now(), len(tasks)))
+                    dones, pendings = loop.run_until_complete(asyncio.wait(tasks))
+                    print("完成的任务数：%s,时间点：%s" % (len(dones), datetime.datetime.now()))
+                    print("当前对列数：%s" % q_data.qsize())
+                    event.set()
+            else:
+                tasks = []
+                for i in range(q_data.qsize()):
+                    item = q_data.get()
+                    tasks.append(asyncio.ensure_future(exec_data(item, cids, semaphore)))
+                    q_data.task_done()
+                if len(tasks) > 0:
+                    print("开始任务：%s，数量：%s" % (datetime.datetime.now(), len(tasks)))
+                    dones, pendings = loop.run_until_complete(asyncio.wait(tasks))
+                    print("完成的任务数：%s,时间点：%s" % (len(dones), datetime.datetime.now()))
+                    print("当前对列数：%s" % q_data.qsize())
+                    event.set()
     q_data.join()
     end = datetime.datetime.now()
     print('Cost {} seconds'.format(end - start))

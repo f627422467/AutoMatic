@@ -18,6 +18,7 @@ class Producer(threading.Thread):
         loop = asyncio.new_event_loop()
         while True:
             if self.q_ids.empty():
+                self.event.set()
                 break
             id = self.q_ids.get()
             print("开始抓取ID%s" % id)
@@ -66,6 +67,7 @@ class Producer(threading.Thread):
                         else:
                             # 未满 向栈添加数据
                             self.queue.put(item)
+                            self.event.set()
                             # print("生产数据：%s" + str(item))
                 page += 1
         print(self.name + "结束")

@@ -14,11 +14,11 @@ class Producer(threading.Thread):
         self.q_shops = q_shops
         self.global_goods_ids = global_goods_ids
 
-    # 保证生产者的数量小于等于商铺的数量，否则退出会有问题
     def run(self):
         loop = asyncio.new_event_loop()
         while True:
             if self.q_shops.empty():
+                self.event.set()
                 break
             shop_id = self.q_shops.get().shop_id
             print("开始抓取店铺%s" % shop_id)
@@ -26,7 +26,6 @@ class Producer(threading.Thread):
             page = 0
             while True:
                 json = loop.run_until_complete(tools.get_first_goods_by_shop(shop_id, page))
-                # time.sleep(3)
                 if json is None:
                     print("抓取店铺%s完毕，总页数：%s" % (shop_id, page))
                     break
@@ -40,10 +39,14 @@ class Producer(threading.Thread):
                 for item in items:
                     sell_num = item.get('sell_num')
                     goods_id = item.get('product_id')
-                    if sell_num < 10:
+                    if sell_num < 1:
                         continue
                     if self.global_goods_ids.__contains__(goods_id):
                         continue
+                    self.global_goods_ids.append(goods_id)
+                    one = loop.run_until_complete(tools.get_goods_by_id(goods_id))
+                    if one:
+                        item = one.get('data')
                     # 判断栈是否已经满
                     if self.queue.full():
                         print("队列已满，总数%s" % self.queue.qsize())
@@ -58,15 +61,14 @@ class Producer(threading.Thread):
                         if self.queue.empty():
                             # 未满 向栈添加数据
                             self.queue.put(item)
-                            self.global_goods_ids.append(goods_id)
                             # print("生产数据：%s" + str(item))
                             # 将Flag设置为True
                             self.event.set()
                         else:
                             # 未满 向栈添加数据
                             self.queue.put(item)
+                            self.event.set()
                             # print("生产数据：%s" + str(item))
-                            self.global_goods_ids.append(goods_id)
                 page += 1
             while True:
                 json = loop.run_until_complete(tools.get_goods_by_shop(shop_id, page))
@@ -85,10 +87,14 @@ class Producer(threading.Thread):
                 for item in items:
                     sell_num = item.get('sell_num')
                     goods_id = item.get('product_id')
-                    if sell_num < 10:
+                    if sell_num < 1:
                         continue
                     if self.global_goods_ids.__contains__(goods_id):
                         continue
+                    self.global_goods_ids.append(goods_id)
+                    one = loop.run_until_complete(tools.get_goods_by_id(goods_id))
+                    if one:
+                        item = one.get('data')
                     # 判断栈是否已经满
                     if self.queue.full():
                         print("队列已满，总数%s" % self.queue.qsize())
@@ -103,14 +109,13 @@ class Producer(threading.Thread):
                         if self.queue.empty():
                             # 未满 向栈添加数据
                             self.queue.put(item)
-                            self.global_goods_ids.append(goods_id)
                             # print("生产数据：%s" + str(item))
                             # 将Flag设置为True
                             self.event.set()
                         else:
                             # 未满 向栈添加数据
                             self.queue.put(item)
+                            self.event.set()
                             # print("生产数据：%s" + str(item))
-                            self.global_goods_ids.append(goods_id)
                 page += 1
         print(self.name + "结束")

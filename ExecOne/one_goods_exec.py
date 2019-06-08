@@ -8,7 +8,7 @@ import functools
 import sys
 import datetime
 
-async def parse_page(goods_id,goods_id_object):
+async def parse_page(goods_id):
     item = await tools.get_goods_by_id(goods_id)
     sell_num = item.get('data').get('sell_num')
     product_id = item.get('data').get('product_id')
@@ -53,10 +53,8 @@ async def parse_page(goods_id,goods_id_object):
 
 async def exec(goods_id):
     print(u"开始抓取商品%s:%s" % (goods_id,datetime.datetime.now()))
-    already_goods = await Goods.findAll('goods_id=?', goods_id)
-    goods_id_object = tools.list_to_dict(already_goods, 'goods_id')
     try:
-        await parse_page(goods_id,goods_id_object)
+        await parse_page(goods_id)
     except Exception as e:
         print(u"抓取商品%s出错，原因：%s " % (goods_id,e))
     print(u"抓取商品%s完成:%s" % (goods_id,datetime.datetime.now()))

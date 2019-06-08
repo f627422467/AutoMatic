@@ -20,6 +20,7 @@ class Producer(threading.Thread):
         loop = asyncio.new_event_loop()
         while True:
             if self.q_material.empty():
+                self.event.set()
                 break
             material_id = self.q_material.get()
             print("开始抓取模块%s" % material_id)
