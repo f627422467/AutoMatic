@@ -33,7 +33,7 @@ async def exec_data(item, cids, semaphore):
         await check_shop(shop_id)
         goods_price = item.get('discount_price') / 100
         goods_name = item.get('name')
-        cid = item.get('cid')
+        cid = item.get('third_cid')
         if not cids.__contains__(cid):
             cid = item.get('second_cid')
         goods_picture_url = item.get('img')
@@ -99,7 +99,6 @@ async def exec_data(item, cids, semaphore):
             await tmp.save()
 
 
-
 # 首页精选推荐
 if __name__ == '__main__':
 
@@ -115,6 +114,7 @@ if __name__ == '__main__':
     # 初始化
     q_data = queue.Queue(maxsize=30000)
     global_goods_ids = []
+    global_page = []
     event = threading.Event()
     lock = threading.Lock()
 
@@ -122,7 +122,7 @@ if __name__ == '__main__':
         event.clear()
 
     for i in range(5):
-        p = recommend_producer.Producer(i, q_data, event, global_goods_ids)
+        p = recommend_producer.Producer(i, q_data, event, global_page, global_goods_ids)
         p.start()
 
     semaphore = asyncio.Semaphore(500)

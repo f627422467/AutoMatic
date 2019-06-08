@@ -34,7 +34,7 @@ async def exec_data(item, cids, semaphore):
         await check_shop(shop_id)
         goods_price = item.get('discount_price') / 100
         goods_name = item.get('name')
-        cid = item.get('cid')
+        cid = item.get('third_cid')
         if not cids.__contains__(cid):
             cid = item.get('second_cid')
         goods_picture_url = item.get('img')

@@ -6,16 +6,18 @@ import time
 
 
 class Producer(threading.Thread):
-    def __init__(self, name, queue, event, global_goods_ids):
+    def __init__(self, name, queue, event,global_page, global_goods_ids):
         threading.Thread.__init__(self)
         self.name = "生产者" + str(name)
         self.queue = queue
         self.event = event
+        self.global_page = global_page
         self.global_goods_ids = global_goods_ids
 
     def run(self):
         loop = asyncio.new_event_loop()
-        page = 0
+        page = len(self.global_page)
+        self.global_page.append(page)
         while True:
             json = loop.run_until_complete(tools.get_recommend_goods(page))
             if json is None:
@@ -29,11 +31,14 @@ class Producer(threading.Thread):
                 break
             items = json.get('data').get('list')
             for item in items:
-                sell_num = item.get('sell_num')
-                if sell_num < 1:
-                    continue
                 goods_id = item.get('product_id')
+                if not goods_id:
+                    continue
+                sell_num = item.get('sell_num')
+                # if sell_num < 1:
+                #     continue
                 if self.global_goods_ids.__contains__(goods_id):
+                    print("重复")
                     continue
                 self.global_goods_ids.append(goods_id)
                 one = loop.run_until_complete(tools.get_goods_by_id(goods_id))
@@ -61,5 +66,6 @@ class Producer(threading.Thread):
                         self.queue.put(item)
                         self.event.set()
                         # print("生产数据：%s" + str(item))
-            page += 1
+            page = len(self.global_page)
+            self.global_page.append(page)
         print(self.name + "结束")
