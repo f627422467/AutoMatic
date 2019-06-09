@@ -44,13 +44,13 @@ class Producer(threading.Thread):
                 # 唤醒前所有在等待的消费者线程
                 if self.queue.empty():
                     # 未满 向栈添加数据
-                    self.queue.put(item)
+                    self.queue.put(item.get('data'))
                     # print("生产数据：%s" + str(item))
                     # 将Flag设置为True
                     self.event.set()
                 else:
                     # 未满 向栈添加数据
-                    self.queue.put(item)
+                    self.queue.put(item.get('data'))
                     # print("生产数据：%s" + str(item))
                     self.event.set()
         print(self.name + "结束")

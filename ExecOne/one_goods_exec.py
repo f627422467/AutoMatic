@@ -72,9 +72,9 @@ def done_callback(loop, futu):
 
 #页面手动更新单个产品
 if __name__ == '__main__':
-    goods_id = str(sys.argv[1])
-    print(goods_id)
-    # goods_id = str(3281941925434892962)
+    # goods_id = str(sys.argv[1])
+    # print(goods_id)
+    goods_id = str(3349947079131821336)
     loop = asyncio.get_event_loop()
     futus = asyncio.gather(init(loop,goods_id))
     futus.add_done_callback(functools.partial(done_callback, loop))

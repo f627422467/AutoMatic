@@ -119,7 +119,7 @@ class Producer(threading.Thread):
                         else:
                             # 未满 向栈添加数据
                             self.queue.put(item)
-                            self.event.set()
+                            # self.event.set()
                             # print("生产数据：%s" + str(item))
                 page += 1
         print(self.name + "结束")
