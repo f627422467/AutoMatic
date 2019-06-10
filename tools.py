@@ -278,6 +278,25 @@ async def get_goods_by_campaign_id(campaign_id, page):
     return await utils.aiohttp_get(url, headers, proxy)
 
 
+def get_goods(goods_id):
+    params = {
+        'id': goods_id,
+        'b_type_new': 0
+    }
+    url = "https://haohuo.snssdk.com/product/fxgajaxstaticitem?" + urlencode(params)
+    header2s = {
+        'user-agent': phton_user_agent,
+        'Referer': 'https://haohuo.snssdk.com/views/product/item2?id=%s' % goods_id,
+    }
+    try:
+        response = requests.get(url, headers=header2s)
+        if response.status_code == 200:
+            return response.json()
+    except Exception as e:
+        print("请求异常：%s" % e)
+        pass
+
+
 if __name__ == '__main__':
     all_goods_ids = [1,5,9,20]
     print(','.join(all_goods_ids))

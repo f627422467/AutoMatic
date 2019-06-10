@@ -89,7 +89,7 @@ async def exec_data(item, cids, semaphore):
             goods_item.sell_num = sell_num
             goods_item.add_num = item_add_num
             await goods_item.save()
-        if is_add or goods.add_num > 0:
+        if goods.add_num > 0:
             await Goods_Tmp.del_by('goods_id=?', goods.id)
             tmp = Goods_Tmp()
             tmp.goods_id = goods.id

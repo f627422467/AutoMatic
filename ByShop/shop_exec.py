@@ -11,6 +11,7 @@ from config import configs
 import time
 import datetime
 import tools
+import sys
 
 
 async def check_shop(shop_id, shop_id_object):
@@ -90,7 +91,7 @@ async def exec_data(item, cids, semaphore, shop_id_object, goods):
             goods_item.sell_num = sell_num
             goods_item.add_num = item_add_num
             await goods_item.save()
-        if is_add or goods.add_num > 0:
+        if goods.add_num > 0:
             await Goods_Tmp.del_by('goods_id=?', goods.id)
             tmp = Goods_Tmp()
             tmp.goods_id = goods.id
@@ -181,3 +182,4 @@ if __name__ == '__main__':
     q_data.join()
     end = datetime.datetime.now()
     print('Cost {} seconds'.format(end - start))
+    sys.exit()

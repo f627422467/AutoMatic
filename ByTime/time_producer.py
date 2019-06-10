@@ -6,19 +6,19 @@ import time
 
 
 class Producer(threading.Thread):
-    def __init__(self, name, q_goods, queue, event, global_goods_ids):
+    def __init__(self, name, q_goods, queue, event, global_goods_ids,global_not_goods_ids):
         threading.Thread.__init__(self)
         self.name = "生产者" + str(name)
         self.queue = queue
         self.event = event
         self.q_goods = q_goods
         self.global_goods_ids = global_goods_ids
+        self.global_not_goods_ids = global_not_goods_ids
 
     def run(self):
         loop = asyncio.new_event_loop()
         while True:
             if self.q_goods.empty():
-                self.event.set()
                 break
             goods_id = self.q_goods.get()
             print(u"开始抓取商品%s" % goods_id)
@@ -27,6 +27,7 @@ class Producer(threading.Thread):
             if not item or not item.get('data'):
                 continue
             if not item.get('data').get('name') or item.get('data').get('name') == '':
+                self.global_not_goods_ids.append(goods_id)
                 continue
             if self.global_goods_ids.__contains__(goods_id):
                 continue
