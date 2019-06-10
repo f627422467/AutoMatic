@@ -90,7 +90,7 @@ async def exec_data(item, cids, semaphore,goods):
 if __name__ == '__main__':
 
     query_time = str(sys.argv[1])
-    # query_time = '2019-06-10 23:00:00'
+    # query_time = '2019-06-11 00:01:00'
     print(query_time)
     start = datetime.datetime.now()
     loop = asyncio.get_event_loop()
