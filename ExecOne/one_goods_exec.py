@@ -12,10 +12,14 @@ import datetime
 
 async def parse_page(goods_id):
     item = await tools.get_goods_by_id(goods_id)
-    sell_num = item.get('data').get('sell_num')
+    if not item :
+        return
+    if not item.get('data'):
+        return
     product_id = item.get('data').get('product_id')
     if not product_id:
         return
+    sell_num = int(item.get('data').get('sell_num'))
     goods = await Goods.find_one('goods_id=?', goods_id)
     if goods:
         # 修改
