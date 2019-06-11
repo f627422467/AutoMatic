@@ -35,8 +35,8 @@ class Producer(threading.Thread):
                 if not goods_id:
                     continue
                 sell_num = item.get('sell_num')
-                # if sell_num < 1:
-                #     continue
+                if sell_num < 1:
+                    continue
                 if self.global_goods_ids.__contains__(goods_id):
                     print("重复")
                     continue
