@@ -26,7 +26,7 @@ async def check_shop(shop_id, shop_id_object):
 
 async def exec_data(item, cids, semaphore, shop_id_object, goods):
     async with semaphore:
-        sell_num = item.get('sell_num')
+        sell_num = int(item.get('sell_num'))
         goods_id = item.get('product_id')
         if not goods_id:
             return
@@ -133,7 +133,7 @@ if __name__ == '__main__':
     if event.isSet:
         event.clear()
 
-    for i in range(100):
+    for i in range(500):
         p = shop_producer.Producer(i, q_shops, q_data, event, global_goods_ids)
         p.start()
 

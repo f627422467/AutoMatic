@@ -15,7 +15,7 @@ import tools
 
 async def exec_data(item, cids, semaphore):
     async with semaphore:
-        sell_num = item.get('sell_num')
+        sell_num = int(item.get('sell_num'))
         goods_id = item.get('product_id')
         if not goods_id:
             return
@@ -25,7 +25,7 @@ async def exec_data(item, cids, semaphore):
         cid = item.get('third_cid')
         if not cids.__contains__(cid):
             cid = item.get('second_cid')
-        goods_picture_url = item.get('image')
+        goods_picture_url = item.get('img')
         goods_url = 'https://haohuo.snssdk.com/views/product/item?id=' + goods_id
         goods = await Goods.find_one('goods_id=?', goods_id)
         if goods:

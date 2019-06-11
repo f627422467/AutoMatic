@@ -28,7 +28,7 @@ async def exec_data(item, cids, semaphore):
         goods_id = item.get('product_id')
         if not goods_id:
             return
-        sell_num = item.get('sell_num')
+        sell_num = int(item.get('sell_num'))
         shop_id = item.get('shop_id')
         await check_shop(shop_id)
         goods_price = item.get('discount_price') / 100

@@ -24,7 +24,7 @@ async def exec_not_sell(goods_id,semaphore):
 
 async def exec_data(item, cids, semaphore,goods):
     async with semaphore:
-        sell_num = item.get('sell_num')
+        sell_num = int(item.get('sell_num'))
         goods_id = item.get('product_id')
         if not goods_id:
             return

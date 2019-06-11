@@ -24,7 +24,7 @@ async def check_shop(shop_id):
 
 async def exec_data(item, cids, semaphore):
     async with semaphore:
-        sell_num = item.get('sell_num')
+        sell_num = int(item.get('sell_num'))
         goods_id = item.get('product_id')
         if not goods_id:
             return

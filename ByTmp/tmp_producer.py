@@ -27,6 +27,8 @@ class Producer(threading.Thread):
             if not item or not item.get('data'):
                 continue
             if not item.get('data').get('name') or item.get('data').get('name') == '':
+                print("下架： %s" % goods_id)
+                print(item)
                 continue
             if self.global_goods_ids.__contains__(goods_id):
                 continue
@@ -44,13 +46,13 @@ class Producer(threading.Thread):
                 # 唤醒前所有在等待的消费者线程
                 if self.queue.empty():
                     # 未满 向栈添加数据
-                    self.queue.put(item)
+                    self.queue.put(item.get('data'))
                     # print("生产数据：%s" + str(item))
                     # 将Flag设置为True
                     self.event.set()
                 else:
                     # 未满 向栈添加数据
-                    self.queue.put(item)
+                    self.queue.put(item.get('data'))
                     # print("生产数据：%s" + str(item))
                     self.event.set()
         print(self.name + "结束")
