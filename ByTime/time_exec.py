@@ -119,7 +119,7 @@ if __name__ == '__main__':
     if event.isSet:
         event.clear()
 
-    for i in range(100):
+    for i in range(300):
         p = time_producer.Producer(i, q_goods, q_data, event, global_goods_ids,global_not_goods_ids)
         p.start()
 
