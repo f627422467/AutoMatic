@@ -1,3 +1,5 @@
+import sys
+sys.path.append("E:\\AutoMatic\\")
 from ByTime import time_producer
 import consumer
 import threading
@@ -10,7 +12,6 @@ from Models.Categorys import Category_Cid
 from config import configs
 import time
 import datetime
-import sys
 import tools
 
 async def exec_not_sell(goods_id,semaphore):
@@ -24,10 +25,10 @@ async def exec_not_sell(goods_id,semaphore):
 
 async def exec_data(item, cids, semaphore,goods):
     async with semaphore:
-        sell_num = int(item.get('sell_num'))
         goods_id = item.get('product_id')
         if not goods_id:
             return
+        sell_num = int(item.get('sell_num'))
         shop_id = item.get('shop_id')
         goods_price = item.get('discount_price')/100
         goods_name = item.get('name')

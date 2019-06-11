@@ -28,7 +28,6 @@ class Producer(threading.Thread):
                 continue
             if not item.get('data').get('name') or item.get('data').get('name') == '':
                 print("下架： %s" % goods_id)
-                print(item)
                 continue
             if self.global_goods_ids.__contains__(goods_id):
                 continue

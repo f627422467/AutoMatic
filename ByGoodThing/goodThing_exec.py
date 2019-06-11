@@ -1,3 +1,5 @@
+import sys
+sys.path.append("E:\\AutoMatic\\")
 from ByGoodThing import goodThing_producer
 import threading
 import queue
@@ -9,7 +11,6 @@ from Models.Categorys import Category_Cid, Categorys
 from config import configs
 import time
 import datetime
-import tools
 
 
 async def check_shop(shop_id):
@@ -24,10 +25,10 @@ async def check_shop(shop_id):
 
 async def exec_data(item, cids, semaphore):
     async with semaphore:
-        sell_num = int(item.get('sell_num'))
         goods_id = item.get('product_id')
         if not goods_id:
             return
+        sell_num = int(item.get('sell_num'))
         shop_id = item.get('shop_id')
         await check_shop(shop_id)
         goods_price = item.get('discount_price')/100

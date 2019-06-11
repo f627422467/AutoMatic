@@ -1,3 +1,5 @@
+import sys
+sys.path.append("/opt/AutoMatic/")
 import tools
 from ORM import orm
 from Models.Shop import Shop

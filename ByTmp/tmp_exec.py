@@ -1,3 +1,5 @@
+import sys
+sys.path.append("E:\\AutoMatic\\")
 from ByTmp import tmp_producer
 import consumer
 import threading
@@ -13,12 +15,12 @@ import datetime
 import tools
 
 
-async def exec_data(item, cids, semaphore):
+async def exec_data(item, goods,cids, semaphore):
     async with semaphore:
-        sell_num = int(item.get('sell_num'))
         goods_id = item.get('product_id')
         if not goods_id:
             return
+        sell_num = int(item.get('sell_num'))
         shop_id = item.get('shop_id')
         goods_price = item.get('discount_price')/100
         goods_name = item.get('name')
@@ -27,7 +29,7 @@ async def exec_data(item, cids, semaphore):
             cid = item.get('second_cid')
         goods_picture_url = item.get('img')
         goods_url = 'https://haohuo.snssdk.com/views/product/item?id=' + goods_id
-        goods = await Goods.find_one('goods_id=?', goods_id)
+        # goods = await Goods.find_one('goods_id=?', goods_id)
         if goods:
             # 修改
             time_now = datetime.datetime.now().strftime("%Y-%m-%d")
@@ -83,6 +85,8 @@ if __name__ == '__main__':
         q_goods.put_nowait(good.goods_id)
     print("商品总数%s" % q_goods.qsize())
 
+    goods_id_object = tools.list_to_dict(goods, "goods_id")
+
     category_cids = loop.run_until_complete(Category_Cid.findAll())
     cids = []
     for category_cid in category_cids:
@@ -119,7 +123,8 @@ if __name__ == '__main__':
                 tasks = []
                 for i in range(q_data.qsize()):
                     item = q_data.get()
-                    tasks.append(asyncio.ensure_future(exec_data(item, cids, semaphore)))
+                    goods = goods_id_object.get(item.get('product_id'))
+                    tasks.append(asyncio.ensure_future(exec_data(item, goods,cids, semaphore)))
                     q_data.task_done()
                 if len(tasks) > 0:
                     print("开始任务：%s，数量：%s" % (datetime.datetime.now(), len(tasks)))
@@ -131,7 +136,8 @@ if __name__ == '__main__':
                 tasks = []
                 for i in range(q_data.qsize()):
                     item = q_data.get()
-                    tasks.append(asyncio.ensure_future(exec_data(item, cids, semaphore)))
+                    goods = goods_id_object.get(item.get('product_id'))
+                    tasks.append(asyncio.ensure_future(exec_data(item, goods,cids, semaphore)))
                     q_data.task_done()
                 if len(tasks) > 0:
                     print("开始任务：%s，数量：%s" % (datetime.datetime.now(), len(tasks)))

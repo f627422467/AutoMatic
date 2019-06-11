@@ -1,3 +1,5 @@
+import sys
+sys.path.append("E:\\AutoMatic\\")
 from ByRecommend import recommend_producer
 import consumer
 import threading
@@ -10,7 +12,6 @@ from Models.Categorys import Category_Cid
 from config import configs
 import time
 import datetime
-import sys
 
 
 async def check_shop(shop_id):
