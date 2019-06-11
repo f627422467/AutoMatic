@@ -1,14 +1,13 @@
 import sys
 sys.path.append("E:\\AutoMatic\\")
-from ByActivity import activity_producer
-import consumer
+from ByZhiDian import zhidian_producer
 import threading
 import queue
 import asyncio
 from ORM import orm
 from Models.Shop import Shop
 from Models.Goods import Goods, Goods_Item, Goods_Tmp
-from Models.Categorys import Category_Cid
+from Models.Categorys import Category_Cid, Categorys
 from config import configs
 import time
 import datetime
@@ -33,7 +32,7 @@ async def exec_data(item, cids, semaphore):
         sell_num = int(item.get('sell_num'))
         shop_id = item.get('shop_id')
         await check_shop(shop_id)
-        goods_price = item.get('discount_price') / 100
+        goods_price = item.get('discount_price')/100
         goods_name = item.get('name')
         cid = item.get('third_cid')
         if not cids.__contains__(cid):
@@ -101,50 +100,35 @@ async def exec_data(item, cids, semaphore):
             await tmp.save()
 
 
-# 抓取最新活动，活动的ID，暂时没有获取到，手动写一下
+# 按照活动，不是以活动ID发起的
 if __name__ == '__main__':
     start = datetime.datetime.now()
     loop = asyncio.get_event_loop()
     loop.run_until_complete(orm.create_pool(loop=loop, **configs.db))
 
-    # 端午节
-    activity_id = 1559812843258
-    _ = tools.get_random_num(12)
-    json = loop.run_until_complete(tools.get_activity_by_id(activity_id, _))
+    q_ids = queue.Queue(maxsize=0)
+
+    #暖春钓鱼专场
+    mertial_id = 7967
+    json = loop.run_until_complete(tools.get_detail_by_mertial_id(mertial_id))
     if json is None:
         sys.exit()
     if json.get('data') is None or len(json.get('data')) <= 0:
         sys.exit()
-    if json.get('data').get('cards_list') is None or len(json.get('data').get('cards_list')) <= 0:
-        sys.exit()
-    material_ids = []
-    items = json.get('data').get('cards_list')
-    for item in items:
-        cardType = item.get('cardType')
-        if not cardType == 'goods':
-            continue
-        data = item.get('data')
-        material_id = data.get('id')
-        if material_id:
-            material_ids.append(int(material_id))
-        else:
-            list = data.get('list')
-            for element in list:
-                material_id = element.get('goods').get('id')
-                material_ids.append(int(material_id))
-    if len(material_ids) <= 0:
-        sys.exit()
+    detail_ids_str = json.get('data').get('detail_ids')
+    detail_ids = detail_ids_str.split(',')
 
-    q_material = queue.Queue(maxsize=0)
-    for material_id in material_ids:
-        q_material.put_nowait(material_id)
-    print("模块总数%s" % q_material.qsize())
+
+    for detail_id in detail_ids:
+        q_ids.put_nowait(detail_id)
+    print("ID总数%s" % q_ids.qsize())
 
     category_cids = loop.run_until_complete(Category_Cid.findAll())
     cids = []
     for category_cid in category_cids:
         if not cids.__contains__(category_cid.cid):
             cids.append(category_cid.cid)
+
     # 初始化
     q_data = queue.Queue(maxsize=30000)
     global_goods_ids = []
@@ -155,17 +139,16 @@ if __name__ == '__main__':
         event.clear()
 
     for i in range(5):
-        p = activity_producer.Producer(i, q_material, q_data, event, global_goods_ids, activity_id)
+        p = zhidian_producer.Producer(i, q_ids, q_data, event, global_goods_ids,mertial_id)
         p.start()
-
     semaphore = asyncio.Semaphore(500)
     while True:
         if q_data.empty():
             # 栈空 线程进入等待
             event.wait(30)
-            if q_material.empty() and q_data.empty():
+            if q_ids.empty() and q_data.empty():
                 time.sleep(10)
-                if q_material.empty() and q_data.empty():
+                if q_ids.empty() and q_data.empty():
                     print("退出")
                     break
             # 线程唤醒后将flag设置为False
