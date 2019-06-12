@@ -19,6 +19,10 @@ async def exec_not_sell(goods_id,semaphore):
     async with semaphore:
         goods = await Goods.find_one('goods_id=?', goods_id)
         if goods:
+            time_now = datetime.datetime.now().strftime("%Y-%m-%d")
+            time_last_edit = goods.edit_time.strftime("%Y-%m-%d")
+            if time_now != time_last_edit:
+                goods.add_num = 0
             goods.is_selling = False
             # goods.add_num = 0
             goods.edit_time = datetime.datetime.now()
@@ -92,8 +96,8 @@ async def exec_data(item, cids, semaphore,goods):
 # 按照给定时间更新
 if __name__ == '__main__':
 
-    query_time = str(sys.argv[1])
-    # query_time = '2019-06-12 21:00:00'
+    #query_time = str(sys.argv[1])
+    query_time = '2019-06-13 07:00:00'
     print(query_time)
     start = datetime.datetime.now()
     loop = asyncio.get_event_loop()
