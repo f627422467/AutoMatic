@@ -98,7 +98,8 @@ if __name__ == '__main__':
     start = datetime.datetime.now()
     loop = asyncio.get_event_loop()
     loop.run_until_complete(orm.create_pool(loop=loop, **configs.db))
-    goods = loop.run_until_complete(Goods.findAll('edit_time<? and is_selling=?', [query_time,True]))
+    # and is_selling=? ,True
+    goods = loop.run_until_complete(Goods.findAll('edit_time<?', query_time))
     q_goods = queue.Queue(maxsize=0)
     for good in goods:
         q_goods.put_nowait(good.goods_id)
