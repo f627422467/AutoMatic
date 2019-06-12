@@ -92,15 +92,15 @@ class Producer(threading.Thread):
                     goods_id = item.get('product_id')
                     if sell_num < 1:
                         continue
-                    if self.global_goods_ids.__contains__(goods_id):
-                        continue
-                    self.global_goods_ids.append(goods_id)
                     one = loop.run_until_complete(tools.get_goods_by_id(goods_id))
                     if one:
                         item = one.get('data')
                     else:
                         print(item)
                         continue
+                    if self.global_goods_ids.__contains__(goods_id):
+                        continue
+                    self.global_goods_ids.append(goods_id)
                     # 判断栈是否已经满
                     if self.queue.full():
                         print("队列已满，总数%s" % self.queue.qsize())

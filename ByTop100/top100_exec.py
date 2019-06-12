@@ -199,3 +199,5 @@ if __name__ == '__main__':
     q_data.join()
     end = datetime.datetime.now()
     print('Cost {} seconds'.format(end - start))
+    sys.exit()
+

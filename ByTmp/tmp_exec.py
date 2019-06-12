@@ -101,7 +101,7 @@ if __name__ == '__main__':
     if event.isSet:
         event.clear()
 
-    for i in range(5):
+    for i in range(100):
         p = tmp_producer.Producer(i, q_goods, q_data, event, global_goods_ids)
         p.start()
 

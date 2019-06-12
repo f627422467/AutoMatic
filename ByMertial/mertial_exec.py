@@ -1,6 +1,6 @@
 import sys
 sys.path.append("E:\\AutoMatic\\")
-from ByZhiDian import zhidian_producer
+from ByMertial import mertial_producer
 import threading
 import queue
 import asyncio
@@ -139,7 +139,7 @@ if __name__ == '__main__':
         event.clear()
 
     for i in range(5):
-        p = zhidian_producer.Producer(i, q_ids, q_data, event, global_goods_ids,mertial_id)
+        p = mertial_producer.Producer(i, q_ids, q_data, event, global_goods_ids,mertial_id)
         p.start()
     semaphore = asyncio.Semaphore(500)
     while True:
