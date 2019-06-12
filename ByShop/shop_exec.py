@@ -1,4 +1,5 @@
 import sys
+sys.path.append("F:\\PyCharmProjects\\AutoMatic")
 sys.path.append("E:\\AutoMatic\\")
 from ByShop import shop_producer
 import consumer

@@ -1,4 +1,5 @@
 import sys
+sys.path.append("F:\\PyCharmProjects\\AutoMatic")
 sys.path.append("E:\\AutoMatic\\")
 from ByTop100 import top100_producer
 import consumer

@@ -1,4 +1,6 @@
 import sys
+sys.path.append("F:\\PyCharmProjects\\AutoMatic")
+sys.path.append("E:\\AutoMatic\\")
 sys.path.append("/opt/AutoMatic/")
 import tools
 from ORM import orm
