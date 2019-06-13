@@ -58,7 +58,7 @@ async def exec_data(item, cids, semaphore, shop_id_object, goods):
             goods.goods_price = goods_price
             if time_now != time_last_edit:
                 goods.add_num = 0+add_num
-            else:
+            elif add_num >= 0:
                 goods.add_num = goods.add_num + add_num
             goods.sell_num = sell_num
             if goods.item_last_sell_num is None:

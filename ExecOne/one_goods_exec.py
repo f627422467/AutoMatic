@@ -31,7 +31,7 @@ async def parse_page(goods_id):
         add_num = sell_num - goods.sell_num
         if time_now != time_last_edit:
             goods.add_num = 0
-        else:
+        elif add_num >= 0:
             goods.add_num = goods.add_num + add_num
         goods.sell_num = sell_num
         if goods.item_last_sell_num is None:
@@ -82,7 +82,7 @@ def done_callback(loop, futu):
 if __name__ == '__main__':
     goods_id = str(sys.argv[1])
     print(goods_id)
-    # goods_id = str(3271688762610033962)
+    # goods_id = str(3350184704631534750)
     loop = asyncio.get_event_loop()
     futus = asyncio.gather(init(loop,goods_id))
     futus.add_done_callback(functools.partial(done_callback, loop))

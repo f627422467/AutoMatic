@@ -22,6 +22,8 @@ async def create_pool(loop, **kw):
         minsize=kw.get('minsize', 1),
         loop=loop
     )
+    global batch_size
+    batch_size = 10000
 
 
 async def select(sql, args, size=None):
@@ -152,9 +154,12 @@ class ModelMetaclass(type):
         attrs['__table__'] = tableName
         attrs['__primary_key__'] = primaryKey # 主键属性名
         attrs['__fields__'] = fields # 除主键外的属性名
+        #attrs['__all_fields__'] = fields.append(primaryKey)  # 除主键外的属性名
         attrs['__select__all__'] = 'select %s.* from `%s`' % (tableName, tableName)
         attrs['__select__'] = 'select `%s`, %s from `%s`' % (primaryKey, ', '.join(escaped_fields), tableName)
         attrs['__insert__'] = 'insert ignore into `%s` (%s, `%s`) values (%s)' % (tableName, ', '.join(escaped_fields), primaryKey, create_args_string(len(escaped_fields) + 1))
+        attrs['__batch_insert__'] = 'insert  into `%s` (%s, `%s`) values ' % (tableName, ', '.join(escaped_fields), primaryKey)
+        attrs['__on_duplicate_key_update__'] = 'ON DUPLICATE KEY UPDATE %s,%s' % (', '.join(map(lambda f: '%s=VALUES(%s)' % (f,f), fields)),'%s=VALUES(%s)' % (primaryKey,primaryKey))
         attrs['__update__'] = 'update `%s` set %s where `%s`=?' % (tableName, ', '.join(map(lambda f: '`%s`=?' % (mappings.get(f).name or f), fields)), primaryKey)
         attrs['__delete__'] = 'delete from `%s` where `%s`=?' % (tableName, primaryKey)
         attrs['__delete__where__'] = 'delete from `%s`' % tableName
@@ -255,6 +260,52 @@ class Model(dict, metaclass=ModelMetaclass):
         if len(rs) == 0:
             return None
         return cls(**rs[0])
+
+
+    @classmethod
+    async def batch_insert(cls, objs):
+        if not objs:
+            logging.warn('批量新增时，传入了一个空的集合')
+            return
+        sel = cls.__batch_insert__
+        vals = []
+        for obj in objs:
+            args = list(map(obj.getValueOrDefault, obj.__fields__))
+            args.append(obj.getValueOrDefault(obj.__primary_key__))
+            val = '(%s)' % ','.join(list(map(lambda f: '\'%s\'' % f, args)))
+            vals.append(val)
+            if len(vals) >= batch_size:
+                sql = '%s %s' % (sel, ','.join(vals))
+                rows = await execute(sql, None)
+                if rows != len(vals):
+                    logging.warn('failed to insert by primary key: affected rows: %s' % rows)
+                vals = []
+        if vals:
+            sql = '%s %s' % (sel,','.join(vals))
+            rows = await execute(sql,None)
+            if rows != len(vals):
+                logging.warn('failed to insert by primary key: affected rows: %s' % rows)
+
+    @classmethod
+    async def batch_update(cls, objs):
+        if not objs:
+            logging.warn('批量更新时，传入了一个空的集合')
+            return
+        sel = cls.__batch_insert__
+        key = cls.__on_duplicate_key_update__
+        vals = []
+        for obj in objs:
+            args = list(map(obj.getValueOrDefault, obj.__fields__))
+            args.append(obj.getValueOrDefault(obj.__primary_key__))
+            val = '(%s)' % ','.join(list(map(lambda f: '\'%s\'' % f, args)))
+            vals.append(val)
+            if len(vals) >= batch_size:
+                sql = '%s %s %s' % (sel, ','.join(vals), key)
+                await execute(sql, None)
+                vals = []
+        if vals:
+            sql = '%s %s %s' % (sel, ','.join(vals),key)
+            await execute(sql, None)
 
     async def save(self):
         args = list(map(self.getValueOrDefault, self.__fields__))

@@ -37,3 +37,10 @@ class Goods_Tmp(orm.Model):
     sell_num = orm.IntegerField(primary_key=False)
     edit_time = orm.DateTimeField()
 
+
+class Temp(orm.Model):
+    __table__ = 'temp'
+    id = orm.IntegerField(primary_key=True)
+    TableId = orm.StringField(ddl='varchar(100)')
+    TableName = orm.StringField(ddl='varchar(100)')
+    DateTime = orm.DateTimeField()
