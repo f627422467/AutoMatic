@@ -1,5 +1,5 @@
 import sys
-sys.path.append("F:\\PyCharmProjects\\AutoMatic")
+sys.path.append("D:\\AutoMatic")
 sys.path.append("E:\\AutoMatic\\")
 from ByCategory import category_producer
 import threading

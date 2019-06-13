@@ -1,5 +1,5 @@
 import sys
-sys.path.append("F:\\PyCharmProjects\\AutoMatic")
+sys.path.append("D:\\AutoMatic")
 sys.path.append("E:\\AutoMatic\\")
 from ByRecommend import recommend_producer
 import consumer
