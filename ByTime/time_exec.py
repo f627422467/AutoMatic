@@ -58,7 +58,11 @@ async def exec_data(item, cids, semaphore,goods):
             goods.goods_picture_url = goods_picture_url
             goods.goods_price = goods_price
             if time_now != time_last_edit:
-                goods.add_num = 0 + add_num
+                # goods.add_num = 0 + add_num
+                if add_num >= 0:
+                    goods.add_num = 0+add_num
+                else:
+                    goods.add_num = 0
             elif add_num >= 0:
                 goods.add_num = goods.add_num + add_num
             if goods.add_num < 0:
@@ -70,7 +74,7 @@ async def exec_data(item, cids, semaphore,goods):
             goods.edit_time = datetime.datetime.now()
 
             item_add_num = sell_num - goods.item_last_sell_num
-            if item_add_num > 100:
+            if item_add_num > 100 or item_add_num < 0:
                 goods.item_last_sell_num = sell_num
             await goods.update()
         else:
@@ -95,7 +99,7 @@ async def exec_data(item, cids, semaphore,goods):
 if __name__ == '__main__':
 
     query_time = str(sys.argv[1])
-    # query_time = '2019-06-13 08:00:00'
+    # query_time = '2019-06-14 09:00:00'
     print(query_time)
     start = datetime.datetime.now()
     loop = asyncio.get_event_loop()
