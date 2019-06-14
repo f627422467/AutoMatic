@@ -2655,3 +2655,15 @@
 /venv/pip-selfcheck.json
 /venv/pyvenv.cfg
 /.idea
+/ByActivity/__pycache__/*.pyc
+/ByCategory/__pycache__/*.pyc
+/ByGoodThing/__pycache__/*.pyc
+/ByKill/__pycache__/*.pyc
+/ByMertial/__pycache__/*.pyc
+/ByRecommend/__pycache__/*.pyc
+/ByTime/__pycache__/*.pyc
+/ByTmp/__pycache__/*.pyc
+/ByTop100/__pycache__/*.pyc
+/ByZhiDian/__pycache__/*.pyc
+/GetNumberByShop/__pycache__/*.pyc
+/__pycache__/*.pyc
