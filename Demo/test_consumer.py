@@ -22,9 +22,6 @@ class Consumer(threading.Thread):
         self.loop = loop
 
     def run(self):
-        # loop = asyncio.new_event_loop()
-        # loop = asyncio.get_event_loop()
-        # loop.run_until_complete(orm.create_pool(loop=loop, **configs.db))
         while True:
             # 判断栈是否为空
             if self.task.empty():
@@ -53,7 +50,7 @@ class Consumer(threading.Thread):
             self.task.task_done()
         if self.type == 'goods_update':
             self.loop.run_until_complete(Goods.batch_update(items))
-        elif self.type == 'goods_insert':
+        elif type == 'goods_insert':
             self.loop.run_until_complete(Goods.batch_insert(items))
         elif self.type == 'goods_item':
             self.loop.run_until_complete(Goods_Item.batch_insert(items))

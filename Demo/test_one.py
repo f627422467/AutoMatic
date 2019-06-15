@@ -78,3 +78,4 @@ if __name__ == '__main__':
     q_goods_tmp.join()
     q_stop.join()
     print("主程序结束")
+

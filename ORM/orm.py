@@ -59,22 +59,6 @@ async def execute(sql, args, autocommit=True):
         return affected
 
 
-async def execute_sql(sql, autocommit=True):
-    log(sql)
-    async with __pool.get() as conn:
-        if not autocommit:
-            await conn.begin()
-        try:
-            async with conn.cursor(aiomysql.DictCursor) as cur:
-                await cur.execute(sql)
-            if not autocommit:
-                await conn.commit()
-        except BaseException as e:
-            if not autocommit:
-                await conn.rollback()
-            raise
-
-
 async def save(sql, args, autocommit=True):
     log(sql)
     async with __pool.get() as conn:
@@ -323,11 +307,11 @@ class Model(dict, metaclass=ModelMetaclass):
             vals.append(val)
             if len(vals) >= batch_size:
                 sql = '%s %s %s' % (sel, ','.join(vals), key)
-                await execute_sql(sql)
+                await execute(sql, None)
                 vals = []
         if vals:
             sql = '%s %s %s' % (sel, ','.join(vals), key)
-            await execute_sql(sql)
+            await execute(sql, None)
 
     async def save(self):
         args = list(map(self.getValueOrDefault, self.__fields__))
