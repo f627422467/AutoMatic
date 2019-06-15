@@ -135,6 +135,15 @@ def get_random_num(num):
     return ''.join(str(random.choice(range(10))) for _ in range(num))
 
 
+def reutrn_value(field):
+    if type(field) is bytes:
+        field = ord(field)
+        return '%d' % field
+    return '\'%s\'' % field
+    # else:
+    #     return field
+
+
 # TODO
 # 获取头条榜单
 # 活动ID，随机12位。115118308595
@@ -298,5 +307,4 @@ def get_goods(goods_id):
 
 
 if __name__ == '__main__':
-    all_goods_ids = [1,5,9,20]
-    print(','.join(all_goods_ids))
+    reutrn_value(False)

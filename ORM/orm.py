@@ -1,6 +1,7 @@
 import logging
 import aiomysql
 import datetime
+import tools
 
 
 def log(sql, args=()):
@@ -58,6 +59,22 @@ async def execute(sql, args, autocommit=True):
         return affected
 
 
+async def execute_sql(sql, autocommit=True):
+    log(sql)
+    async with __pool.get() as conn:
+        if not autocommit:
+            await conn.begin()
+        try:
+            async with conn.cursor(aiomysql.DictCursor) as cur:
+                await cur.execute(sql)
+            if not autocommit:
+                await conn.commit()
+        except BaseException as e:
+            if not autocommit:
+                await conn.rollback()
+            raise
+
+
 async def save(sql, args, autocommit=True):
     log(sql)
     async with __pool.get() as conn:
@@ -74,6 +91,7 @@ async def save(sql, args, autocommit=True):
                 await conn.rollback()
             raise
         return id
+
 
 def create_args_string(num):
     L = []
@@ -127,7 +145,7 @@ class DateTimeField(Field):
 class ModelMetaclass(type):
 
     def __new__(cls, name, bases, attrs):
-        if name=='Model':
+        if name == 'Model':
             return type.__new__(cls, name, bases, attrs)
         tableName = attrs.get('__table__', None) or name
         logging.info('found model: %s (table: %s)' % (name, tableName))
@@ -150,17 +168,21 @@ class ModelMetaclass(type):
         for k in mappings.keys():
             attrs.pop(k)
         escaped_fields = list(map(lambda f: '`%s`' % f, fields))
-        attrs['__mappings__'] = mappings # 保存属性和列的映射关系
+        attrs['__mappings__'] = mappings  # 保存属性和列的映射关系
         attrs['__table__'] = tableName
-        attrs['__primary_key__'] = primaryKey # 主键属性名
-        attrs['__fields__'] = fields # 除主键外的属性名
-        #attrs['__all_fields__'] = fields.append(primaryKey)  # 除主键外的属性名
+        attrs['__primary_key__'] = primaryKey  # 主键属性名
+        attrs['__fields__'] = fields  # 除主键外的属性名
+        # attrs['__all_fields__'] = fields.append(primaryKey)  # 除主键外的属性名
         attrs['__select__all__'] = 'select %s.* from `%s`' % (tableName, tableName)
         attrs['__select__'] = 'select `%s`, %s from `%s`' % (primaryKey, ', '.join(escaped_fields), tableName)
-        attrs['__insert__'] = 'insert ignore into `%s` (%s, `%s`) values (%s)' % (tableName, ', '.join(escaped_fields), primaryKey, create_args_string(len(escaped_fields) + 1))
-        attrs['__batch_insert__'] = 'insert  into `%s` (%s, `%s`) values ' % (tableName, ', '.join(escaped_fields), primaryKey)
-        attrs['__on_duplicate_key_update__'] = 'ON DUPLICATE KEY UPDATE %s,%s' % (', '.join(map(lambda f: '%s=VALUES(%s)' % (f,f), fields)),'%s=VALUES(%s)' % (primaryKey,primaryKey))
-        attrs['__update__'] = 'update `%s` set %s where `%s`=?' % (tableName, ', '.join(map(lambda f: '`%s`=?' % (mappings.get(f).name or f), fields)), primaryKey)
+        attrs['__insert__'] = 'insert ignore into `%s` (%s, `%s`) values (%s)' % (
+            tableName, ', '.join(escaped_fields), primaryKey, create_args_string(len(escaped_fields) + 1))
+        attrs['__batch_insert__'] = 'insert  into `%s` (%s, `%s`) values ' % (
+            tableName, ', '.join(escaped_fields), primaryKey)
+        attrs['__on_duplicate_key_update__'] = 'ON DUPLICATE KEY UPDATE %s,%s' % (
+            ', '.join(map(lambda f: '%s=VALUES(%s)' % (f, f), fields)), '%s=VALUES(%s)' % (primaryKey, primaryKey))
+        attrs['__update__'] = 'update `%s` set %s where `%s`=?' % (
+            tableName, ', '.join(map(lambda f: '`%s`=?' % (mappings.get(f).name or f), fields)), primaryKey)
         attrs['__delete__'] = 'delete from `%s` where `%s`=?' % (tableName, primaryKey)
         attrs['__delete__where__'] = 'delete from `%s`' % tableName
         return type.__new__(cls, name, bases, attrs)
@@ -234,8 +256,9 @@ class Model(dict, metaclass=ModelMetaclass):
         return rs[0]['_num_']
 
     @classmethod
-    async def find_inner(cls,inner_table,inner_key):
-        rs = await select('%s inner join %s on %s.%s = %s.%s' % (cls.__select__all__, inner_table,cls.__table__ ,cls.__primary_key__,inner_table,inner_key),[])
+    async def find_inner(cls, inner_table, inner_key):
+        rs = await select('%s inner join %s on %s.%s = %s.%s' % (
+            cls.__select__all__, inner_table, cls.__table__, cls.__primary_key__, inner_table, inner_key), [])
         if len(rs) == 0:
             return None
         return [cls(**r) for r in rs]
@@ -261,7 +284,6 @@ class Model(dict, metaclass=ModelMetaclass):
             return None
         return cls(**rs[0])
 
-
     @classmethod
     async def batch_insert(cls, objs):
         if not objs:
@@ -272,7 +294,7 @@ class Model(dict, metaclass=ModelMetaclass):
         for obj in objs:
             args = list(map(obj.getValueOrDefault, obj.__fields__))
             args.append(obj.getValueOrDefault(obj.__primary_key__))
-            val = '(%s)' % ','.join(list(map(lambda f: '\'%s\'' % f, args)))
+            val = '(%s)' % ','.join(list(map(lambda f: tools.reutrn_value(f), args)))
             vals.append(val)
             if len(vals) >= batch_size:
                 sql = '%s %s' % (sel, ','.join(vals))
@@ -281,8 +303,8 @@ class Model(dict, metaclass=ModelMetaclass):
                     logging.warn('failed to insert by primary key: affected rows: %s' % rows)
                 vals = []
         if vals:
-            sql = '%s %s' % (sel,','.join(vals))
-            rows = await execute(sql,None)
+            sql = '%s %s' % (sel, ','.join(vals))
+            rows = await execute(sql, None)
             if rows != len(vals):
                 logging.warn('failed to insert by primary key: affected rows: %s' % rows)
 
@@ -297,15 +319,15 @@ class Model(dict, metaclass=ModelMetaclass):
         for obj in objs:
             args = list(map(obj.getValueOrDefault, obj.__fields__))
             args.append(obj.getValueOrDefault(obj.__primary_key__))
-            val = '(%s)' % ','.join(list(map(lambda f: '\'%s\'' % f, args)))
+            val = '(%s)' % ','.join(list(map(lambda f: tools.reutrn_value(f), args)))
             vals.append(val)
             if len(vals) >= batch_size:
                 sql = '%s %s %s' % (sel, ','.join(vals), key)
-                await execute(sql, None)
+                await execute_sql(sql)
                 vals = []
         if vals:
-            sql = '%s %s %s' % (sel, ','.join(vals),key)
-            await execute(sql, None)
+            sql = '%s %s %s' % (sel, ','.join(vals), key)
+            await execute_sql(sql)
 
     async def save(self):
         args = list(map(self.getValueOrDefault, self.__fields__))
@@ -327,7 +349,7 @@ class Model(dict, metaclass=ModelMetaclass):
             logging.warn('failed to remove by primary key: affected rows: %s' % rows)
 
     @classmethod
-    async def del_by(cls,where=None, args=None):
+    async def del_by(cls, where=None, args=None):
         sql = [cls.__delete__where__]
         if where:
             sql.append('where')
