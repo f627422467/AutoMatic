@@ -98,8 +98,8 @@ async def exec_data(item, cids, semaphore,goods):
 # 按照给定时间更新
 if __name__ == '__main__':
 
-    query_time = str(sys.argv[1])
-    # query_time = '2019-06-14 09:00:00'
+    # query_time = str(sys.argv[1])
+    query_time = '2019-06-14 20:00:00'
     print(query_time)
     start = datetime.datetime.now()
     loop = asyncio.get_event_loop()
@@ -182,7 +182,6 @@ if __name__ == '__main__':
         print("开始任务：%s，数量：%s" % (datetime.datetime.now(), len(tasks)))
         dones, pendings = loop.run_until_complete(asyncio.wait(tasks))
         print("完成的任务数：%s,时间点：%s" % (len(dones), datetime.datetime.now()))
-
     end = datetime.datetime.now()
     print('Cost {} seconds'.format(end - start))
     sys.exit()
