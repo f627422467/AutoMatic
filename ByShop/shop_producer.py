@@ -92,4 +92,5 @@ class Producer(threading.Thread):
                             self.event.set()
                 page += 1
             self.q_shops.task_done()
+            print("剩余店铺：%s" % self.q_shops.qsize())
         print(self.name + "结束")
