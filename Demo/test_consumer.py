@@ -25,12 +25,16 @@ class Consumer(threading.Thread):
     def run(self):
         while True:
             # 判断栈是否为空
+            # print("%s 还在跑" % self.name)
             if self.task.empty():
                 # 栈空 线程进入等待
+                # print("%s 进入等待" % self.name)
+                # self.event.set()
                 self.event.wait()
                 # 线程唤醒后将flag设置为False
                 if self.event.isSet():
                     self.event.clear()
+                # print("%s 唤起" % self.name)
             else:
                 # 判断栈是否已满，为满则在向栈取数据后，则将Flag设置为True,
                 # 唤醒前所有在等待的生产者线程

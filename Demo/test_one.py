@@ -14,7 +14,7 @@ import tools
 
 if __name__ == '__main__':
 
-    query_time = '2019-06-16 20:00:00'
+    query_time = '2019-06-16 21:00:00'
     # query_time = '3348546531090388329'
     print(query_time)
     start = datetime.datetime.now()
@@ -37,6 +37,9 @@ if __name__ == '__main__':
         if not cids.__contains__(category_cid.cid):
             cids.append(category_cid.cid)
 
+    goods_tmp = loop.run_until_complete(Goods_Tmp.findAll())
+    goods_id_tmp = tools.list_to_dict(goods_tmp, "goods_id")
+
     # 初始化
     q_data = queue.Queue(maxsize=30000)
     event = threading.Event()
@@ -53,7 +56,7 @@ if __name__ == '__main__':
     q_goods_tmp = queue.Queue(maxsize=30000)
 
     for i in range(10):
-        pc = test_producer_consumer.Consumer(i, q_data, q_goods, q_goods_item, q_goods_tmp, event, goods_id_object,cids)
+        pc = test_producer_consumer.Consumer(i, q_data, q_goods, q_goods_item, q_goods_tmp, event, goods_id_object,goods_id_tmp,cids)
         pc.daemon = True
         pc.start()
 

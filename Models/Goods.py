@@ -11,6 +11,7 @@ class Goods(orm.Model):
     goods_url = orm.StringField(ddl='varchar(5000)')
     goods_picture_url = orm.StringField(ddl='varchar(5000)')
     goods_price = orm.StringField(ddl='varchar(100)')
+    biz_type = orm.IntegerField(primary_key=False)
     cid = orm.IntegerField(primary_key=False)
     sell_num = orm.IntegerField(primary_key=False)
     add_num = orm.IntegerField(primary_key=False)

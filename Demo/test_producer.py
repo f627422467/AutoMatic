@@ -36,6 +36,7 @@ class Producer(threading.Thread):
             if self.queue.full():
                 print("队列已满，总数%s" % self.queue.qsize())
                 # 栈满 线程进入等待
+                self.event.set()
                 self.event.wait()
                 # 线程唤醒后将flag设置为False
                 if self.event.isSet():

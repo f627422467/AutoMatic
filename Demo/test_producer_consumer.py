@@ -12,7 +12,7 @@ import time
 
 
 class Consumer(threading.Thread):
-    def __init__(self, name, task, q_goods, q_goods_item, q_goods_tmp, event, goods_id_object, cids):
+    def __init__(self, name, task, q_goods, q_goods_item, q_goods_tmp, event, goods_id_object, goods_id_tmp, cids):
         threading.Thread.__init__(self)
         self.name = "处理者" + str(name)
         self.task = task
@@ -21,17 +21,22 @@ class Consumer(threading.Thread):
         self.q_goods_tmp = q_goods_tmp
         self.event = event
         self.goods_id_object = goods_id_object
+        self.goods_id_tmp = goods_id_tmp
         self.cids = cids
 
     def run(self):
         while True:
+            # print("%s 还在跑"% self.name)
             # 判断栈是否为空
             if self.task.empty() or self.q_goods.full() or self.q_goods_item.full() or self.q_goods_tmp.full():
                 # 栈空 线程进入等待
+                # print("%s 进入等待" % self.name)
+                # self.event.set()
                 self.event.wait()
                 # 线程唤醒后将flag设置为False
                 if self.event.isSet():
                     self.event.clear()
+                # print("%s 唤起" % self.name)
             else:
                 # 判断栈是否已满，为满则在向栈取数据后，则将Flag设置为True,
                 # 唤醒前所有在等待的生产者线程
@@ -46,7 +51,7 @@ class Consumer(threading.Thread):
     def do_entitry(self):
         item = self.task.get()
         goods_id = item.get('product_id')
-        # print("%s 开始处理 %s" % (self.name, goods_id))
+        print("%s 开始处理 %s" % (self.name, goods_id))
         if not goods_id:
             return
         goods = self.goods_id_object.get(goods_id)
@@ -59,6 +64,7 @@ class Consumer(threading.Thread):
         if not self.cids.__contains__(cid):
             cid = item.get('second_cid')
         goods_picture_url = item.get('img')
+        biz_type = item.get('biz_type')
         goods_url = 'https://haohuo.snssdk.com/views/product/item?id=' + goods_id
         if goods:
             # 修改
@@ -69,6 +75,7 @@ class Consumer(threading.Thread):
             add_num = sell_num - sell_num_old
             goods.shop_id = shop_id
             goods.cid = cid
+            goods.biz_type = biz_type
             goods.goods_name = goods_name
             goods.goods_url = goods_url
             goods.goods_picture_url = goods_picture_url
@@ -80,7 +87,7 @@ class Consumer(threading.Thread):
             if goods.add_num < 0:
                 print(item)
                 print("goods_id:%s;add_num:%s;sell_num:%s;last_sell_num:%s;last:%s;" % (
-                goods.goods_id, add_num, sell_num, sell_num_old, goods.add_num))
+                    goods.goods_id, add_num, sell_num, sell_num_old, goods.add_num))
             goods.sell_num = sell_num
             if goods.item_last_sell_num is None:
                 goods.item_last_sell_num = goods.sell_num
@@ -101,8 +108,10 @@ class Consumer(threading.Thread):
             # await goods_item.save()
             self.q_goods_item.put(goods_item)
         if goods.add_num > 0:
+            tmp = self.goods_id_tmp.get(goods.id)
+            if not tmp:
+                tmp = Goods_Tmp()
             # await Goods_Tmp.del_by('goods_id=?', goods.id)
-            tmp = Goods_Tmp()
             tmp.goods_id = goods.id
             tmp.add_num = goods.add_num
             tmp.sell_num = goods.sell_num
