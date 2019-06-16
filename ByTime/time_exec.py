@@ -1,4 +1,7 @@
-from Demo import test_producer, test_producer_consumer, test_consumer
+import sys
+sys.path.append("D:\\AutoMatic")
+sys.path.append("E:\\AutoMatic\\")
+from ByTime import time_producer
 import consumer
 import threading
 import queue
@@ -55,18 +58,18 @@ if __name__ == '__main__':
     q_goods_tmp = queue.Queue(maxsize=30000)
 
     q_stop = queue.Queue(maxsize=10)
-    c1 = test_consumer.Consumer(1, q_goods, q_stop, event, lock, 'goods_update', loop)
+    c1 = consumer.Consumer(1, q_goods, q_stop, event, lock, 'goods_update', loop)
     c1.daemon = True
     c1.start()
-    c2 = test_consumer.Consumer(2, q_goods_item, q_stop, event, lock, 'goods_item', loop)
+    c2 = consumer.Consumer(2, q_goods_item, q_stop, event, lock, 'goods_item', loop)
     c2.daemon = True
     c2.start()
-    c3 = test_consumer.Consumer(3, q_goods_tmp, q_stop, event, lock, 'goods_tmp', loop)
+    c3 = consumer.Consumer(3, q_goods_tmp, q_stop, event, lock, 'goods_tmp', loop)
     c3.daemon = True
     c3.start()
 
     for i in range(900):
-        p = test_producer.Producer(i, q_task, q_goods, q_goods_item, q_goods_tmp, event, global_goods_ids,
+        p = time_producer.Producer(i, q_task, q_goods, q_goods_item, q_goods_tmp, event, global_goods_ids,
                                    goods_id_object, goods_id_tmp, cids)
         p.start()
 
