@@ -306,8 +306,10 @@ class Model(dict, metaclass=ModelMetaclass):
             val = '(%s)' % ','.join(list(map(lambda f: tools.reutrn_value(f), args)))
             vals.append(val)
             if len(vals) >= batch_size:
+                # print(datetime.datetime.now())
                 sql = '%s %s %s' % (sel, ','.join(vals), key)
                 await execute(sql, None)
+                # print(datetime.datetime.now())
                 vals = []
         if vals:
             sql = '%s %s %s' % (sel, ','.join(vals), key)

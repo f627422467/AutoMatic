@@ -21,7 +21,7 @@ class Producer(threading.Thread):
             if self.task.empty():
                 break
             goods_id = self.task.get()
-            print(u"开始处理%s" % goods_id)
+            print(u"开始生产%s" % goods_id)
             item = loop.run_until_complete(tools.get_goods_by_id(goods_id))
             if not item or not item.get('data'):
                 continue
@@ -44,7 +44,7 @@ class Producer(threading.Thread):
                 # 未满 向栈添加数据
                 is_empty = self.queue.empty()
                 self.queue.put(item)
-                print("%s数据：%s" % (self.name, str(item)))
+                # print("%s数据：%s" % (self.name, str(item)))
                 self.task.task_done()
                 if is_empty:
                     # 将Flag设置为True

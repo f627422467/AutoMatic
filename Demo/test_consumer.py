@@ -12,7 +12,7 @@ import time
 
 
 class Consumer(threading.Thread):
-    def __init__(self, name, task, queue, event, type, loop):
+    def __init__(self, name, task, queue, event,lock, type, loop):
         threading.Thread.__init__(self)
         self.name = "消费者" + str(name)
         self.task = task
@@ -20,6 +20,7 @@ class Consumer(threading.Thread):
         self.event = event
         self.type = type
         self.loop = loop
+        self.lock = lock
 
     def run(self):
         while True:
@@ -35,9 +36,13 @@ class Consumer(threading.Thread):
                 # 唤醒前所有在等待的生产者线程
                 is_empty = self.task.full()
                 self.queue.put('stop')
+                self.lock.acquire()
+                print("%s 获得锁" % self.name)
                 self.save_or_update()
                 if is_empty:
                     self.event.set()
+                self.lock.release()
+                print("%s 释放锁" % self.name)
                 self.queue.get()
                 self.queue.task_done()
 

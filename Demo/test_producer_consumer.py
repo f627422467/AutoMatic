@@ -12,7 +12,7 @@ import time
 
 
 class Consumer(threading.Thread):
-    def __init__(self, name, task, q_goods, q_goods_item, q_goods_tmp, event,goods_id_object,cids):
+    def __init__(self, name, task, q_goods, q_goods_item, q_goods_tmp, event, goods_id_object, cids):
         threading.Thread.__init__(self)
         self.name = "处理者" + str(name)
         self.task = task
@@ -46,6 +46,7 @@ class Consumer(threading.Thread):
     def do_entitry(self):
         item = self.task.get()
         goods_id = item.get('product_id')
+        # print("%s 开始处理 %s" % (self.name, goods_id))
         if not goods_id:
             return
         goods = self.goods_id_object.get(goods_id)
@@ -78,7 +79,8 @@ class Consumer(threading.Thread):
                 goods.add_num = goods.add_num + add_num
             if goods.add_num < 0:
                 print(item)
-                print("goods_id:%s;add_num:%s;sell_num:%s;last_sell_num:%s;last:%s;" % (goods.goods_id,add_num,sell_num,sell_num_old,goods.add_num))
+                print("goods_id:%s;add_num:%s;sell_num:%s;last_sell_num:%s;last:%s;" % (
+                goods.goods_id, add_num, sell_num, sell_num_old, goods.add_num))
             goods.sell_num = sell_num
             if goods.item_last_sell_num is None:
                 goods.item_last_sell_num = goods.sell_num
@@ -107,5 +109,3 @@ class Consumer(threading.Thread):
             tmp.edit_time = datetime.datetime.now()
             # await tmp.save()
             self.q_goods_tmp.put(tmp)
-
-
