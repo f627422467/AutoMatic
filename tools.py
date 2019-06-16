@@ -4,6 +4,8 @@ import aiohttp
 import datetime
 import utils
 import random
+import aiomysql
+import numpy
 
 pc_user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.119 Safari/537.36'
 
@@ -139,9 +141,12 @@ def reutrn_value(field):
     if type(field) is bytes:
         field = ord(field)
         return '%d' % field
-    return '\'%s\'' % field
-    # else:
-    #     return field
+    elif type(field) is bool:
+        return '%d' % (numpy.array(field) + 0)
+    elif type(field) is str:
+        return '\'%s\'' % aiomysql.escape_string(field)
+    else:
+        return '\'%s\'' % field
 
 
 # TODO
@@ -307,4 +312,5 @@ def get_goods(goods_id):
 
 
 if __name__ == '__main__':
-    reutrn_value(False)
+    # reutrn_value(False)
+    print(aiomysql.escape_string("?"))

@@ -8,72 +8,62 @@ import asyncio
 from config import configs
 import tools
 import test
+import time
 
 
 class Consumer(threading.Thread):
-    def __init__(self, i, q_shops, cids, queue, event, lock, loop):
+    def __init__(self, name, task, queue, event,lock, type, loop):
         threading.Thread.__init__(self)
-        self.name = "消费者" + str(i)
-        self.q_shops = q_shops
-        self.cids = cids
+        self.name = "消费者" + str(name)
+        self.task = task
         self.queue = queue
         self.event = event
-        self.lock = lock
+        self.type = type
         self.loop = loop
+        self.lock = lock
 
     def run(self):
-        loop = asyncio.new_event_loop()
-        loop.run_until_complete(orm.create_pool(loop=loop, **configs.db))
         while True:
             # 判断栈是否为空
-            if self.queue.empty():
+            # print("%s 还在跑" % self.name)
+            if self.task.empty():
                 # 栈空 线程进入等待
-                self.event.wait(10)
-                # if self.q_shops.empty() and self.queue.empty():
-                #     self.event.set()
-                #     break
+                # print("%s 进入等待" % self.name)
+                # self.event.set()
+                self.event.wait()
                 # 线程唤醒后将flag设置为False
                 if self.event.isSet():
                     self.event.clear()
+                # print("%s 唤起" % self.name)
             else:
                 # 判断栈是否已满，为满则在向栈取数据后，则将Flag设置为True,
                 # 唤醒前所有在等待的生产者线程
-                if self.queue.full():
-                    # # 未满 向栈添加数据
-                    # # self.lock.acquire()
-                    # data = self.queue.get()
-                    # # 请求数据库
-                    # self.loop.run_until_complete(self.exec_data(data))
-                    # self.queue.task_done()
-                    # # self.lock.release()
-                    # # 将Flag设置为True
-                    # self.event.set()
-
-                    tasks = []
-                    for i in range(self.queue.qsize() - 50):
-                        item = self.queue.get()
-                        tasks.append(asyncio.ensure_future(test.exec_data(item, self.cids)))
-                        dones, pendings = loop.run_until_complete(asyncio.wait(tasks))
-                        print("完成的任务数：%s" % len(dones))
-                        self.queue.task_done()
+                is_empty = self.task.full()
+                self.queue.put('stop')
+                self.lock.acquire()
+                print("%s 获得锁" % self.name)
+                self.save_or_update()
+                if is_empty:
                     self.event.set()
-                else:
-                    if self.queue.qsize() >= 100:
-                        tasks = []
-                        for i in range(100):
-                            item = self.queue.get()
-                            tasks.append(asyncio.ensure_future(test.exec_data(item, self.cids)))
-                            dones, pendings = loop.run_until_complete(asyncio.wait(tasks))
-                            print("完成的任务数：%s" % len(dones))
-                            self.queue.task_done()
-                    else:
-                        # 未满 向栈添加数据
-                        # self.lock.acquire()
-                        item = self.queue.get()
-                        tasks = []
-                        tasks.append(asyncio.ensure_future(test.exec_data(item, self.cids)))
-                        dones, pendings = loop.run_until_complete(asyncio.wait(tasks))
-                        print("完成的任务数：%s" % len(dones))
-                        self.queue.task_done()
-                        # self.lock.release()
-        print(self.name + "结束")
+                self.lock.release()
+                print("%s 释放锁" % self.name)
+                self.queue.get()
+                self.queue.task_done()
+
+    def save_or_update(self):
+        start = datetime.datetime.now()
+        items = []
+        for i in range(self.task.qsize()):
+            item = self.task.get()
+            items.append(item)
+            self.task.task_done()
+        if self.type == 'goods_update':
+            self.loop.run_until_complete(Goods.batch_update(items))
+        elif type == 'goods_insert':
+            self.loop.run_until_complete(Goods.batch_insert(items))
+        elif self.type == 'goods_item':
+            self.loop.run_until_complete(Goods_Item.batch_insert(items))
+        elif self.type == 'goods_tmp':
+            self.loop.run_until_complete(Goods_Tmp.batch_update(items))
+        end = datetime.datetime.now()
+        print(u"更新了%s：%s条，%s seconds" % (self.type, len(items), end - start))

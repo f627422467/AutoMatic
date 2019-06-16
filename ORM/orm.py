@@ -59,6 +59,24 @@ async def execute(sql, args, autocommit=True):
         return affected
 
 
+async def execute_sql(sql, autocommit=True):
+    log(sql)
+    async with __pool.get() as conn:
+        if not autocommit:
+            await conn.begin()
+        try:
+            async with conn.cursor(aiomysql.DictCursor) as cur:
+                await cur.execute(sql)
+                affected = cur.rowcount
+            if not autocommit:
+                await conn.commit()
+        except BaseException as e:
+            if not autocommit:
+                await conn.rollback()
+            raise
+        return affected
+
+
 async def save(sql, args, autocommit=True):
     log(sql)
     async with __pool.get() as conn:
@@ -282,13 +300,13 @@ class Model(dict, metaclass=ModelMetaclass):
             vals.append(val)
             if len(vals) >= batch_size:
                 sql = '%s %s' % (sel, ','.join(vals))
-                rows = await execute(sql, None)
+                rows = await execute_sql(sql)
                 if rows != len(vals):
                     logging.warn('failed to insert by primary key: affected rows: %s' % rows)
                 vals = []
         if vals:
             sql = '%s %s' % (sel, ','.join(vals))
-            rows = await execute(sql, None)
+            rows = await execute_sql(sql)
             if rows != len(vals):
                 logging.warn('failed to insert by primary key: affected rows: %s' % rows)
 
@@ -308,12 +326,12 @@ class Model(dict, metaclass=ModelMetaclass):
             if len(vals) >= batch_size:
                 # print(datetime.datetime.now())
                 sql = '%s %s %s' % (sel, ','.join(vals), key)
-                await execute(sql, None)
+                await execute_sql(sql)
                 # print(datetime.datetime.now())
                 vals = []
         if vals:
             sql = '%s %s %s' % (sel, ','.join(vals), key)
-            await execute(sql, None)
+            await execute_sql(sql)
 
     async def save(self):
         args = list(map(self.getValueOrDefault, self.__fields__))

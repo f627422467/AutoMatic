@@ -1,7 +1,4 @@
-import sys
-sys.path.append("D:\\AutoMatic")
-sys.path.append("E:\\AutoMatic\\")
-from ByTime import time_producer
+from Demo import test_producer, test_producer_consumer, test_consumer
 import consumer
 import threading
 import queue
@@ -15,101 +12,22 @@ import time
 import datetime
 import tools
 
-async def exec_not_sell(goods_id,semaphore):
-    async with semaphore:
-        goods = await Goods.find_one('goods_id=?', goods_id)
-        if goods:
-            time_now = datetime.datetime.now().strftime("%Y-%m-%d")
-            time_last_edit = goods.edit_time.strftime("%Y-%m-%d")
-            if time_now != time_last_edit:
-                goods.add_num = 0
-            goods.is_selling = False
-            # goods.add_num = 0
-            goods.edit_time = datetime.datetime.now()
-            await goods.update()
-
-
-async def exec_data(item, cids, semaphore,goods):
-    async with semaphore:
-        goods_id = item.get('product_id')
-        if not goods_id:
-            return
-        sell_num = int(item.get('sell_num'))
-        shop_id = item.get('shop_id')
-        goods_price = item.get('discount_price')/100
-        goods_name = item.get('name')
-        cid = item.get('third_cid')
-        if not cids.__contains__(cid):
-            cid = item.get('second_cid')
-        goods_picture_url = item.get('img')
-        goods_url = 'https://haohuo.snssdk.com/views/product/item?id=' + goods_id
-        # goods = await Goods.find_one('goods_id=?', goods_id)
-        if goods:
-            # 修改
-            time_now = datetime.datetime.now().strftime("%Y-%m-%d")
-            time_last_edit = goods.edit_time.strftime("%Y-%m-%d")
-            # 较上次增量
-            sell_num_old = goods.sell_num
-            add_num = sell_num - sell_num_old
-            goods.shop_id = shop_id
-            goods.cid = cid
-            goods.goods_name = goods_name
-            goods.goods_url = goods_url
-            goods.goods_picture_url = goods_picture_url
-            goods.goods_price = goods_price
-            if time_now != time_last_edit:
-                # goods.add_num = 0 + add_num
-                if add_num >= 0:
-                    goods.add_num = 0+add_num
-                else:
-                    goods.add_num = 0
-            elif add_num >= 0:
-                goods.add_num = goods.add_num + add_num
-            if goods.add_num < 0:
-                print(item)
-                print("goods_id:%s;add_num:%s;sell_num:%s;last_sell_num:%s;last:%s;" % (goods.goods_id,add_num,sell_num,sell_num_old,goods.add_num))
-            goods.sell_num = sell_num
-            if goods.item_last_sell_num is None:
-                goods.item_last_sell_num = goods.sell_num
-            goods.edit_time = datetime.datetime.now()
-
-            item_add_num = sell_num - goods.item_last_sell_num
-            if item_add_num > 100 or item_add_num < 0:
-                goods.item_last_sell_num = sell_num
-            await goods.update()
-        else:
-            raise Exception("出错！数据库中没有查询到相应值")
-        if item_add_num >= 100:
-            goods_item = Goods_Item()
-            goods_item.goods_id = goods.id
-            goods_item.sell_num = sell_num
-            goods_item.add_num = item_add_num
-            await goods_item.save()
-        if goods.add_num > 0:
-            await Goods_Tmp.del_by('goods_id=?', goods.id)
-            tmp = Goods_Tmp()
-            tmp.goods_id = goods.id
-            tmp.add_num = goods.add_num
-            tmp.sell_num = goods.sell_num
-            tmp.edit_time = datetime.datetime.now()
-            await tmp.save()
-
-
-# 按照给定时间更新
 if __name__ == '__main__':
 
-    # query_time = str(sys.argv[1])
-    query_time = '2019-06-14 20:00:00'
+    query_time = '2019-06-16 21:42:00'
+    # query_time = '3348546531090388329'
     print(query_time)
     start = datetime.datetime.now()
     loop = asyncio.get_event_loop()
     loop.run_until_complete(orm.create_pool(loop=loop, **configs.db))
     # and is_selling=? ,True
-    goods = loop.run_until_complete(Goods.findAll('edit_time<?', query_time))
-    q_goods = queue.Queue(maxsize=0)
+    goods = loop.run_until_complete(Goods.findAll('edit_time<?and is_selling=?', [query_time, True]))
+    # goods = loop.run_until_complete(Goods.findAll('goods_id=?', "3349284677054817291"))
+
+    q_task = queue.Queue(maxsize=0)
     for good in goods:
-        q_goods.put_nowait(good.goods_id)
-    print("商品总数%s" % q_goods.qsize())
+        q_task.put(good.goods_id)
+    print("商品总数%s" % q_task.qsize())
 
     goods_id_object = tools.list_to_dict(goods, "goods_id")
 
@@ -118,71 +36,43 @@ if __name__ == '__main__':
     for category_cid in category_cids:
         if not cids.__contains__(category_cid.cid):
             cids.append(category_cid.cid)
+
+    goods_tmp = loop.run_until_complete(Goods_Tmp.findAll())
+    goods_id_tmp = tools.list_to_dict(goods_tmp, "goods_id")
+
     # 初始化
-    q_data = queue.Queue(maxsize=30000)
-    global_goods_ids = []
-    global_not_goods_ids = []
     event = threading.Event()
     lock = threading.Lock()
 
     if event.isSet:
         event.clear()
 
-    for i in range(400):
-        p = time_producer.Producer(i, q_goods, q_data, event, global_goods_ids,global_not_goods_ids)
+    global_goods_ids = []
+    global_not_goods_ids = []
+
+    q_goods = queue.Queue(maxsize=30000)
+    q_goods_item = queue.Queue(maxsize=30000)
+    q_goods_tmp = queue.Queue(maxsize=30000)
+
+    q_stop = queue.Queue(maxsize=10)
+    c1 = test_consumer.Consumer(1, q_goods, q_stop, event, lock, 'goods_update', loop)
+    c1.daemon = True
+    c1.start()
+    c2 = test_consumer.Consumer(2, q_goods_item, q_stop, event, lock, 'goods_item', loop)
+    c2.daemon = True
+    c2.start()
+    c3 = test_consumer.Consumer(3, q_goods_tmp, q_stop, event, lock, 'goods_tmp', loop)
+    c3.daemon = True
+    c3.start()
+
+    for i in range(900):
+        p = test_producer.Producer(i, q_task, q_goods, q_goods_item, q_goods_tmp, event, global_goods_ids,
+                                   goods_id_object, goods_id_tmp, cids)
         p.start()
 
-    semaphore = asyncio.Semaphore(500)
-    while True:
-        if q_data.empty():
-            # 栈空 线程进入等待
-            event.wait(30)
-            if q_goods.empty() and q_data.empty():
-                time.sleep(10)
-                if q_goods.empty() and q_data.empty():
-                    print("退出")
-                    break
-            # 线程唤醒后将flag设置为False
-            if event.isSet():
-                event.clear()
-        else:
-            if q_data.full():
-                tasks = []
-                for i in range(q_data.qsize()):
-                    item = q_data.get()
-                    goods = goods_id_object.get(item.get('product_id'))
-                    tasks.append(asyncio.ensure_future(exec_data(item, cids, semaphore,goods)))
-                    q_data.task_done()
-                if len(tasks) > 0:
-                    print("开始任务：%s，数量：%s" % (datetime.datetime.now(), len(tasks)))
-                    dones, pendings = loop.run_until_complete(asyncio.wait(tasks))
-                    print("完成的任务数：%s,时间点：%s" % (len(dones), datetime.datetime.now()))
-                    print("当前对列数：%s" % q_data.qsize())
-                    event.set()
-            else:
-                tasks = []
-                for i in range(q_data.qsize()):
-                    item = q_data.get()
-                    goods = goods_id_object.get(item.get('product_id'))
-                    tasks.append(asyncio.ensure_future(exec_data(item, cids, semaphore,goods)))
-                    q_data.task_done()
-                if len(tasks) > 0:
-                    print("开始任务：%s，数量：%s" % (datetime.datetime.now(), len(tasks)))
-                    dones, pendings = loop.run_until_complete(asyncio.wait(tasks))
-                    print("完成的任务数：%s,时间点：%s" % (len(dones), datetime.datetime.now()))
-                    print("当前对列数：%s" % q_data.qsize())
-                    event.set()
-    q_data.join()
-
-    if global_not_goods_ids:
-        print("有下架的商品，数量%s" % len(global_not_goods_ids))
-        tasks = []
-        for goods_id in global_not_goods_ids:
-            tasks.append(asyncio.ensure_future(exec_not_sell(goods_id,semaphore)))
-        print("开始任务：%s，数量：%s" % (datetime.datetime.now(), len(tasks)))
-        dones, pendings = loop.run_until_complete(asyncio.wait(tasks))
-        print("完成的任务数：%s,时间点：%s" % (len(dones), datetime.datetime.now()))
-    end = datetime.datetime.now()
-    print('Cost {} seconds'.format(end - start))
-    sys.exit()
-
+    q_task.join()
+    q_goods.join()
+    q_goods_item.join()
+    q_goods_tmp.join()
+    q_stop.join()
+    print("主程序结束")
