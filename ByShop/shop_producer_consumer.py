@@ -8,7 +8,7 @@ from Models.Goods import Goods, Goods_Item, Goods_Tmp
 
 
 class Producer(threading.Thread):
-    def __init__(self, name, task, q_goods,q_goods_insert,q_goods_item, q_goods_tmp, event,
+    def __init__(self, name, task, q_goods, q_goods_insert, q_goods_item, q_goods_tmp, event,
                  goods_id_object, goods_id_tmp, cids):
         threading.Thread.__init__(self)
         self.name = "商品生产者" + str(name)
@@ -25,10 +25,7 @@ class Producer(threading.Thread):
     def run(self):
         loop = asyncio.new_event_loop()
         while True:
-            if self.task.empty():
-                break
             goods_id = self.task.get()
-            # print(u"开始生产%s" % goods_id)
             item = loop.run_until_complete(tools.get_goods_by_id(goods_id))
             if not item or not item.get('data'):
                 self.task.task_done()
@@ -36,7 +33,7 @@ class Producer(threading.Thread):
             if not item.get('data').get('name') or item.get('data').get('name') == '':
                 self.exec_not_sell(goods_id)
                 is_empty = False
-                if self.q_goods.empty() or self.q_goods_item.empty() or self.q_goods_tmp.empty():
+                if self.q_goods.empty() or self.q_goods_insert.empty() or self.q_goods_item.empty() or self.q_goods_tmp.empty():
                     is_empty = True
                 if is_empty:
                     self.event.set()
@@ -44,7 +41,7 @@ class Producer(threading.Thread):
                 continue
             item = item.get('data')
             # 判断栈是否已经满
-            if self.q_goods.full() or self.q_goods_item.full() or self.q_goods_tmp.full():
+            if self.q_goods.full() or self.q_goods_insert.full() or self.q_goods_item.full() or self.q_goods_tmp.full():
                 print("队列已满，总数%s" % self.q_goods.qsize())
                 # 栈满 线程进入等待
                 self.event.set()
@@ -54,14 +51,13 @@ class Producer(threading.Thread):
                     self.event.clear()
             else:
                 is_empty = False
-                if self.q_goods.empty() or self.q_goods_item.empty() or self.q_goods_tmp.empty():
+                if self.q_goods.empty() or self.q_goods_insert.empty() or self.q_goods_item.empty() or self.q_goods_tmp.empty():
                     is_empty = True
                 self.do_entitry(item)
                 self.task.task_done()
                 if is_empty:
                     self.event.set()
                     # print(" %s 唤起其他人" % self.name)
-        print(self.name + "结束")
 
     def do_entitry(self, item):
         goods_id = item.get('product_id')
@@ -128,7 +124,7 @@ class Producer(threading.Thread):
             goods.sell_num = sell_num
             goods.item_last_sell_num = sell_num
             self.q_goods_insert.put(goods)
-            print("goods 队列：%s" % self.q_goods.qsize())
+            print("q_goods_insert 队列：%s" % self.q_goods_insert.qsize())
             # goods.id = await goods.save()
         if is_Edit and item_add_num >= 100:
             goods_item = Goods_Item()

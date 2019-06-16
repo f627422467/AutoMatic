@@ -18,7 +18,6 @@ class Producer(threading.Thread):
         loop = asyncio.new_event_loop()
         while True:
             if self.q_shops.empty():
-                self.event.set()
                 break
             shop_id = self.q_shops.get().shop_id
             print("开始抓取店铺%s" % shop_id)
@@ -54,6 +53,7 @@ class Producer(threading.Thread):
                             self.event.clear()
                     else:
                         self.queue.put(goods_id)
+                        print("queue: %s" % self.queue.qsize())
                         if self.queue.empty():
                             self.event.set()
                 page += 1
@@ -89,6 +89,7 @@ class Producer(threading.Thread):
                             self.event.clear()
                     else:
                         self.queue.put(goods_id)
+                        print("queue: %s" % self.queue.qsize())
                         if self.queue.empty():
                             self.event.set()
                 page += 1

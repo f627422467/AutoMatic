@@ -125,10 +125,11 @@ if __name__ == '__main__':
         if not cids.__contains__(category_cid.cid):
             cids.append(category_cid.cid)
 
-    shop_id_object = tools.list_to_dict(shops, 'shop_id')
+    # shop_id_object = tools.list_to_dict(shops, 'shop_id')
 
     all_goods = loop.run_until_complete(Goods.findAll())
     goods_id_object = tools.list_to_dict(all_goods, "goods_id")
+    print("商品总数%s" % len(all_goods))
 
     goods_tmp = loop.run_until_complete(Goods_Tmp.findAll())
     goods_id_tmp = tools.list_to_dict(goods_tmp, "goods_id")
@@ -150,9 +151,10 @@ if __name__ == '__main__':
     q_stop = queue.Queue(maxsize=10)
     c1 = consumer.Consumer(1, q_goods, q_stop, event, lock, 'goods_update', loop)
     c1.daemon = True
+    c1.start()
     c1_1 = consumer.Consumer(1_1, q_goods_insert, q_stop, event, lock, 'goods_insert', loop)
     c1_1.daemon = True
-    c1.start()
+    c1_1.start()
     c2 = consumer.Consumer(2, q_goods_item, q_stop, event, lock, 'goods_item', loop)
     c2.daemon = True
     c2.start()
@@ -161,16 +163,19 @@ if __name__ == '__main__':
     c3.start()
 
     for i in range(900):
-        p = shop_producer_consumer.Producer(i, q_datas, q_goods,q_goods_insert, q_goods_item, q_goods_tmp, event,
+        pc = shop_producer_consumer.Producer(i, q_datas, q_goods,q_goods_insert, q_goods_item, q_goods_tmp, event,
                                             goods_id_object, goods_id_tmp, cids)
-        p.start()
+        pc.daemon = True
+        pc.start()
 
     for i in range(200):
         p = shop_producer.Producer(i, q_task, q_datas, event, global_goods_ids)
         p.start()
 
     q_task.join()
+    q_datas.join()
     q_goods.join()
+    q_goods_insert.join()
     q_goods_item.join()
     q_goods_tmp.join()
     q_stop.join()

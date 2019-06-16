@@ -29,7 +29,7 @@ class Consumer(threading.Thread):
             if self.task.empty():
                 # 栈空 线程进入等待
                 # print("%s 进入等待" % self.name)
-                # self.event.set()
+                self.event.set()
                 self.event.wait()
                 # 线程唤醒后将flag设置为False
                 if self.event.isSet():
