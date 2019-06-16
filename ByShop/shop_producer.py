@@ -53,7 +53,6 @@ class Producer(threading.Thread):
                             self.event.clear()
                     else:
                         self.queue.put(goods_id)
-                        print("queue: %s" % self.queue.qsize())
                         if self.queue.empty():
                             self.event.set()
                 page += 1
@@ -89,7 +88,6 @@ class Producer(threading.Thread):
                             self.event.clear()
                     else:
                         self.queue.put(goods_id)
-                        print("queue: %s" % self.queue.qsize())
                         if self.queue.empty():
                             self.event.set()
                 page += 1
