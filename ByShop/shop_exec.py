@@ -1,7 +1,8 @@
 import sys
+
 sys.path.append("D:\\AutoMatic")
 sys.path.append("E:\\AutoMatic\\")
-from ByShop import shop_producer
+from ByShop import shop_producer, shop_producer_consumer
 import consumer
 import threading
 import queue
@@ -58,7 +59,7 @@ async def exec_data(item, cids, semaphore, shop_id_object, goods):
             goods.goods_price = goods_price
             if time_now != time_last_edit:
                 if add_num >= 0:
-                    goods.add_num = 0+add_num
+                    goods.add_num = 0 + add_num
                 else:
                     goods.add_num = 0
             elif add_num >= 0:
@@ -113,10 +114,10 @@ if __name__ == '__main__':
     loop.run_until_complete(orm.create_pool(loop=loop, **configs.db))
     shops = loop.run_until_complete(Shop.findAll())
     # shops = loop.run_until_complete(Shop.findAll('shop_id=?', 'hmSuxrl'))
-    q_shops = queue.Queue(maxsize=0)
+    q_task = queue.Queue(maxsize=0)
     for shop in shops:
-        q_shops.put_nowait(shop)
-    print("店铺总数%s" % q_shops.qsize())
+        q_task.put(shop)
+    print("店铺总数%s" % q_task.qsize())
 
     category_cids = loop.run_until_complete(Category_Cid.findAll())
     cids = []
@@ -129,62 +130,48 @@ if __name__ == '__main__':
     all_goods = loop.run_until_complete(Goods.findAll())
     goods_id_object = tools.list_to_dict(all_goods, "goods_id")
 
+    goods_tmp = loop.run_until_complete(Goods_Tmp.findAll())
+    goods_id_tmp = tools.list_to_dict(goods_tmp, "goods_id")
+
     # 初始化
-    q_data = queue.Queue(maxsize=30000)
-    global_goods_ids = []
     event = threading.Event()
     lock = threading.Lock()
 
     if event.isSet:
         event.clear()
 
-    for i in range(400):
-        p = shop_producer.Producer(i, q_shops, q_data, event, global_goods_ids)
+    global_goods_ids = []
+    q_datas = queue.Queue(maxsize=30000)
+    q_goods = queue.Queue(maxsize=30000)
+    q_goods_insert = queue.Queue(maxsize=30000)
+    q_goods_item = queue.Queue(maxsize=30000)
+    q_goods_tmp = queue.Queue(maxsize=30000)
+
+    q_stop = queue.Queue(maxsize=10)
+    c1 = consumer.Consumer(1, q_goods, q_stop, event, lock, 'goods_update', loop)
+    c1.daemon = True
+    c1_1 = consumer.Consumer(1_1, q_goods_insert, q_stop, event, lock, 'goods_insert', loop)
+    c1_1.daemon = True
+    c1.start()
+    c2 = consumer.Consumer(2, q_goods_item, q_stop, event, lock, 'goods_item', loop)
+    c2.daemon = True
+    c2.start()
+    c3 = consumer.Consumer(3, q_goods_tmp, q_stop, event, lock, 'goods_tmp', loop)
+    c3.daemon = True
+    c3.start()
+
+    for i in range(900):
+        p = shop_producer_consumer.Producer(i, q_datas, q_goods,q_goods_insert, q_goods_item, q_goods_tmp, event,
+                                            goods_id_object, goods_id_tmp, cids)
         p.start()
 
-    semaphore = asyncio.Semaphore(500)
-    while True:
-        if q_data.empty():
-            # 栈空 线程进入等待
-            event.wait(30)
-            if q_shops.empty() and q_data.empty():
-                time.sleep(10)
-                if q_shops.empty() and q_data.empty():
-                    print("退出")
-                    break
-            # 线程唤醒后将flag设置为False
-            if event.isSet():
-                event.clear()
-        else:
-            if q_data.full():
-                tasks = []
-                for i in range(q_data.qsize()):
-                    item = q_data.get()
-                    goods = goods_id_object.get(item.get('product_id'))
-                    tasks.append(
-                        asyncio.ensure_future(exec_data(item, cids, semaphore, shop_id_object, goods)))
-                    q_data.task_done()
-                if len(tasks) > 0:
-                    print("开始任务：%s，数量：%s" % (datetime.datetime.now(), len(tasks)))
-                    dones, pendings = loop.run_until_complete(asyncio.wait(tasks))
-                    print("完成的任务数：%s,时间点：%s" % (len(dones), datetime.datetime.now()))
-                    print("当前对列数：%s" % q_data.qsize())
-                    event.set()
-            else:
-                tasks = []
-                for i in range(q_data.qsize()):
-                    item = q_data.get()
-                    goods = goods_id_object.get(item.get('product_id'))
-                    tasks.append(
-                        asyncio.ensure_future(exec_data(item, cids, semaphore, shop_id_object, goods)))
-                    q_data.task_done()
-                if len(tasks) > 0:
-                    print("开始任务：%s，数量：%s" % (datetime.datetime.now(), len(tasks)))
-                    dones, pendings = loop.run_until_complete(asyncio.wait(tasks))
-                    print("完成的任务数：%s,时间点：%s" % (len(dones), datetime.datetime.now()))
-                    print("当前对列数：%s" % q_data.qsize())
-                    event.set()
-    q_data.join()
-    end = datetime.datetime.now()
-    print('Cost {} seconds'.format(end - start))
-    sys.exit()
+    for i in range(200):
+        p = shop_producer.Producer(i, q_task, q_datas, event, global_goods_ids)
+        p.start()
+
+    q_task.join()
+    q_goods.join()
+    q_goods_item.join()
+    q_goods_tmp.join()
+    q_stop.join()
+    print("主程序结束")

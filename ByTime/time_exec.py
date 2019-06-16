@@ -1,4 +1,5 @@
 import sys
+
 sys.path.append("D:\\AutoMatic")
 sys.path.append("E:\\AutoMatic\\")
 from ByTime import time_producer
@@ -17,14 +18,15 @@ import tools
 
 if __name__ == '__main__':
 
-    query_time = '2019-06-16 21:42:00'
+    query_time = str(sys.argv[1])
+    # query_time = '2019-06-16 21:42:00'
     # query_time = '3348546531090388329'
     print(query_time)
     start = datetime.datetime.now()
     loop = asyncio.get_event_loop()
     loop.run_until_complete(orm.create_pool(loop=loop, **configs.db))
     # and is_selling=? ,True
-    goods = loop.run_until_complete(Goods.findAll('edit_time<?and is_selling=?', [query_time, True]))
+    goods = loop.run_until_complete(Goods.findAll('edit_time<?', query_time))
     # goods = loop.run_until_complete(Goods.findAll('goods_id=?', "3349284677054817291"))
 
     q_task = queue.Queue(maxsize=0)
@@ -51,7 +53,6 @@ if __name__ == '__main__':
         event.clear()
 
     global_goods_ids = []
-    global_not_goods_ids = []
 
     q_goods = queue.Queue(maxsize=30000)
     q_goods_item = queue.Queue(maxsize=30000)
