@@ -36,10 +36,11 @@ async def exec_data(item, cids, semaphore):
         await check_shop(shop_id)
         goods_price = item.get('discount_price') / 100
         goods_name = item.get('name')
-        cid = item.get('third_cid')
+        cid = item.get('cid')
         if not cids.__contains__(cid):
             cid = item.get('second_cid')
         goods_picture_url = item.get('img')
+        biz_type = item.get('biz_type')
         goods_url = 'https://haohuo.snssdk.com/views/product/item?id=' + goods_id
         is_add = False
         goods = await Goods.find_one('goods_id=?', goods_id)
@@ -51,6 +52,7 @@ async def exec_data(item, cids, semaphore):
             add_num = sell_num - goods.sell_num
             goods.shop_id = shop_id
             goods.cid = cid
+            goods.biz_type = biz_type
             goods.goods_name = goods_name
             goods.goods_url = goods_url
             goods.goods_picture_url = goods_picture_url
@@ -80,6 +82,7 @@ async def exec_data(item, cids, semaphore):
             goods.goods_picture_url = goods_picture_url
             goods.goods_price = goods_price
             goods.cid = cid
+            goods.biz_type = biz_type
             goods.add_num = 0
             goods.sell_num = sell_num
             goods.item_last_sell_num = sell_num

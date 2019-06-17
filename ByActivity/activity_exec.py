@@ -36,11 +36,12 @@ async def exec_data(item, cids, semaphore):
         await check_shop(shop_id)
         goods_price = item.get('discount_price') / 100
         goods_name = item.get('name')
-        cid = item.get('third_cid')
+        cid = item.get('cid')
         if not cids.__contains__(cid):
             cid = item.get('second_cid')
         goods_picture_url = item.get('img')
         goods_url = 'https://haohuo.snssdk.com/views/product/item?id=' + goods_id
+        biz_type = item.get('biz_type')
         is_add = False
         goods = await Goods.find_one('goods_id=?', goods_id)
         if goods:
@@ -55,6 +56,7 @@ async def exec_data(item, cids, semaphore):
             goods.goods_url = goods_url
             goods.goods_picture_url = goods_picture_url
             goods.goods_price = goods_price
+            goods.biz_type = biz_type
             if time_now != time_last_edit:
                 goods.add_num = 0
             elif add_num >= 0:
@@ -80,6 +82,7 @@ async def exec_data(item, cids, semaphore):
             goods.goods_picture_url = goods_picture_url
             goods.goods_price = goods_price
             goods.cid = cid
+            goods.biz_type = biz_type
             goods.add_num = 0
             goods.sell_num = sell_num
             goods.item_last_sell_num = sell_num
@@ -109,7 +112,9 @@ if __name__ == '__main__':
     loop.run_until_complete(orm.create_pool(loop=loop, **configs.db))
 
     # 端午节
-    activity_id = 1559812843258
+    # activity_id = 1559812843258
+    # 万物狂欢节
+    activity_id = 1560644262277
     _ = tools.get_random_num(12)
     json = loop.run_until_complete(tools.get_activity_by_id(activity_id, _))
     if json is None:

@@ -46,7 +46,7 @@ class Producer(threading.Thread):
                     self.global_goods_ids.append(goods_id)
                     one = loop.run_until_complete(tools.get_goods_by_id(goods_id))
                     if one:
-                        item = one.get('data')
+                        item['shop_id'] = one.get('data').get('shop_id')
                     else:
                         continue
                     # 判断栈是否已经满

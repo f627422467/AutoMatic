@@ -35,15 +35,15 @@ class Producer(threading.Thread):
                 if not goods_id:
                     continue
                 sell_num = item.get('sell_num')
-                if sell_num < 1:
-                    continue
+                # if sell_num < 1:
+                #     continue
                 if self.global_goods_ids.__contains__(goods_id):
                     print("重复")
                     continue
                 self.global_goods_ids.append(goods_id)
                 one = loop.run_until_complete(tools.get_goods_by_id(goods_id))
                 if one:
-                    item = one.get('data')
+                    item['shop_id'] = one.get('data').get('shop_id')
                 else:
                     continue
                 # 判断栈是否已经满
