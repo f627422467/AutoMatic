@@ -16,14 +16,13 @@ import time
 import datetime
 import tools
 
-
 # 按照既有店铺更新商品
 if __name__ == '__main__':
     start = datetime.datetime.now()
     loop = asyncio.get_event_loop()
     loop.run_until_complete(orm.create_pool(loop=loop, **configs.db))
-    shops = loop.run_until_complete(Shop.findAll())
-    # shops = loop.run_until_complete(Shop.findAll('shop_id=?', 'hmSuxrl'))
+    # shops = loop.run_until_complete(Shop.findAll())
+    shops = loop.run_until_complete(Shop.findAll('shop_id=?', 'hmSuxrl'))
     q_task = queue.Queue(maxsize=0)
     for shop in shops:
         q_task.put(shop)
@@ -52,7 +51,6 @@ if __name__ == '__main__':
         event.clear()
 
     global_goods_ids = []
-    q_datas = queue.Queue(maxsize=30000)
     q_goods = queue.Queue(maxsize=30000)
     q_goods_insert = queue.Queue(maxsize=30000)
     q_goods_item = queue.Queue(maxsize=30000)
@@ -72,18 +70,17 @@ if __name__ == '__main__':
     c3.daemon = True
     c3.start()
 
+    # for i in range(900):
+    #     #     pc = shop_producer_consumer.Producer(i, q_datas, q_goods,q_goods_insert, q_goods_item, q_goods_tmp, event,
+    #     #                                         goods_id_object, goods_id_tmp, cids)
+    #     #     pc.daemon = True
+    #     #     pc.start()
     for i in range(900):
-        pc = shop_producer_consumer.Producer(i, q_datas, q_goods,q_goods_insert, q_goods_item, q_goods_tmp, event,
-                                            goods_id_object, goods_id_tmp, cids)
-        pc.daemon = True
-        pc.start()
-
-    for i in range(200):
-        p = shop_producer.Producer(i, q_task, q_datas, event, global_goods_ids)
+        p = shop_producer.Producer(i, q_task, q_goods, q_goods_insert, q_goods_item, q_goods_tmp, event,
+                                   global_goods_ids, goods_id_object, goods_id_tmp, cids)
         p.start()
 
     q_task.join()
-    q_datas.join()
     q_goods.join()
     q_goods_insert.join()
     q_goods_item.join()
