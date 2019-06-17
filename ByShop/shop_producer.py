@@ -32,6 +32,44 @@ class Producer(threading.Thread):
             print("开始抓取店铺%s" % shop_id)
             page = 0
             while True:
+                json = loop.run_until_complete(tools.get_first_goods_by_shop(shop_id, page))
+                if json is None:
+                    print("抓取店铺%s完毕，总页数：%s" % (shop_id, page))
+                    break
+                if json.get('data') is None or len(json.get('data')) <= 0:
+                    print("抓取店铺%s完毕，总页数：%s" % (shop_id, page))
+                    break
+                if json.get('data').get('list') is None or len(json.get('data').get('list')) <= 0:
+                    print("抓取店铺%s完毕，总页数：%s" % (shop_id, page))
+                    break
+                items = json.get('data').get('list')
+                for item in items:
+                    sell_num = item.get('sell_num')
+                    goods_id = item.get('product_id')
+                    # if sell_num < 1:
+                    #     continue
+                    if self.global_goods_ids.__contains__(goods_id):
+                        continue
+                    self.global_goods_ids.append(goods_id)
+                    # 判断栈是否已经满
+                    if self.q_goods.full() or self.q_goods_insert.full() or self.q_goods_item.full() or self.q_goods_tmp.full():
+                        print("队列已满，总数%s" % self.q_goods.qsize())
+                        # 栈满 线程进入等待
+                        self.event.set()
+                        self.event.wait()
+                        # 线程唤醒后将flag设置为False
+                        if self.event.isSet():
+                            self.event.clear()
+                    else:
+                        is_empty = False
+                        if self.q_goods.empty() or self.q_goods_insert.empty() or self.q_goods_item.empty() or self.q_goods_tmp.empty():
+                            is_empty = True
+                        self.do_entitry(item, shop_id)
+                        if is_empty:
+                            self.event.set()
+                page += 1
+            page = 0
+            while True:
                 json = loop.run_until_complete(tools.get_goods_by_shop(shop_id, page))
                 if json is None:
                     print("抓取店铺%s完毕，总页数：%s" % (shop_id, page))
