@@ -41,12 +41,12 @@ class Consumer(threading.Thread):
                 is_empty = self.task.full()
                 self.queue.put('stop')
                 self.lock.acquire()
-                print("%s 获得锁" % self.name)
+                # print("%s 获得锁" % self.name)
                 self.save_or_update()
                 if is_empty:
                     self.event.set()
                 self.lock.release()
-                print("%s 释放锁" % self.name)
+                # print("%s 释放锁" % self.name)
                 self.queue.get()
                 self.queue.task_done()
 

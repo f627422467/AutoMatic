@@ -1,4 +1,5 @@
 import sys
+
 sys.path.append("D:\\AutoMatic")
 sys.path.append("E:\\AutoMatic\\")
 from ByTmp import tmp_producer
@@ -16,14 +17,18 @@ import datetime
 import tools
 
 
-async def exec_data(item, goods,cids, semaphore):
+async def exec_data(item, goods, cids, semaphore):
     async with semaphore:
         goods_id = item.get('product_id')
         if not goods_id:
             return
-        sell_num = int(item.get('sell_num'))
+        try:
+            sell_num = int(item.get('sell_num'))
+        except Exception as e:
+            print("转化销量失败：%s" % e)
+            return
         shop_id = item.get('shop_id')
-        goods_price = item.get('discount_price')/100
+        goods_price = item.get('discount_price') / 100
         goods_name = item.get('name')
         cid = item.get('third_cid')
         if not cids.__contains__(cid):
@@ -125,7 +130,7 @@ if __name__ == '__main__':
                 for i in range(q_data.qsize()):
                     item = q_data.get()
                     goods = goods_id_object.get(item.get('product_id'))
-                    tasks.append(asyncio.ensure_future(exec_data(item, goods,cids, semaphore)))
+                    tasks.append(asyncio.ensure_future(exec_data(item, goods, cids, semaphore)))
                     q_data.task_done()
                 if len(tasks) > 0:
                     print("开始任务：%s，数量：%s" % (datetime.datetime.now(), len(tasks)))
@@ -138,7 +143,7 @@ if __name__ == '__main__':
                 for i in range(q_data.qsize()):
                     item = q_data.get()
                     goods = goods_id_object.get(item.get('product_id'))
-                    tasks.append(asyncio.ensure_future(exec_data(item, goods,cids, semaphore)))
+                    tasks.append(asyncio.ensure_future(exec_data(item, goods, cids, semaphore)))
                     q_data.task_done()
                 if len(tasks) > 0:
                     print("开始任务：%s，数量：%s" % (datetime.datetime.now(), len(tasks)))
