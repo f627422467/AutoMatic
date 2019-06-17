@@ -21,8 +21,8 @@ if __name__ == '__main__':
     start = datetime.datetime.now()
     loop = asyncio.get_event_loop()
     loop.run_until_complete(orm.create_pool(loop=loop, **configs.db))
-    # shops = loop.run_until_complete(Shop.findAll())
-    shops = loop.run_until_complete(Shop.findAll('shop_id=?', 'hmSuxrl'))
+    shops = loop.run_until_complete(Shop.findAll())
+    # shops = loop.run_until_complete(Shop.findAll('shop_id=?', 'hmSuxrl'))
     q_task = queue.Queue(maxsize=0)
     for shop in shops:
         q_task.put(shop)
