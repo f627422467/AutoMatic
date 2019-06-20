@@ -52,6 +52,8 @@ async def exec_data(item, goods, cids, semaphore):
                 goods.add_num = 0
             elif add_num >= 0:
                 goods.add_num = goods.add_num + add_num
+            if add_num < 0:
+                return
             goods.sell_num = sell_num
             if goods.item_last_sell_num is None:
                 goods.item_last_sell_num = goods.sell_num

@@ -330,14 +330,20 @@ def get_goods(goods_id):
         print("请求异常：%s" % e)
         pass
 
+
 def get_sell_num(sell_num):
-    if sell_num.__contains__("+"):
-        return sell_num.strip('+')
-    elif sell_num.__contains__("万"):
-        return int(round(float(sell_num.strip('万'))*10000,0))
-    else:
+    if type(sell_num) == int:
         return sell_num
+    if sell_num.__contains__("万+"):
+        return int(round(float(sell_num.strip('万+')) * 10000, 0))
+    elif sell_num.__contains__("+"):
+        return int(sell_num.strip('+'))
+    elif sell_num.__contains__("万"):
+        return int(round(float(sell_num.strip('万')) * 10000, 0))
+    else:
+        return int(sell_num)
+
 
 if __name__ == '__main__':
-    sell_num = get_sell_num('9.12万')
+    sell_num = get_sell_num(100)
     print(sell_num)

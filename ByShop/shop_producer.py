@@ -227,9 +227,7 @@ class Producer(threading.Thread):
             elif add_num >= 0:
                 goods.add_num = goods.add_num + add_num
             if goods.add_num < 0:
-                print(item)
-                print("goods_id:%s;add_num:%s;sell_num:%s;last_sell_num:%s;last:%s;" % (
-                    goods.goods_id, add_num, sell_num, sell_num_old, goods.add_num))
+                return
             goods.sell_num = sell_num
             if goods.item_last_sell_num is None:
                 goods.item_last_sell_num = goods.sell_num
