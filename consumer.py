@@ -40,18 +40,17 @@ class Consumer(threading.Thread):
                 # 唤醒前所有在等待的生产者线程
                 is_empty = self.task.full()
                 self.queue.put('stop')
-                print("%s 获得锁" % self.name)
                 self.lock.acquire()
+                print("%s 获得锁" % self.name)
                 try:
                     self.save_or_update()
                     if is_empty:
                         self.event.set()
                 finally:
-                # print("%s 获得锁" % self.name)
+                    print("%s 释放锁" % self.name)
                     self.lock.release()
-                print("%s 释放锁" % self.name)
-                self.queue.get()
-                self.queue.task_done()
+                    self.queue.get()
+                    self.queue.task_done()
 
     def save_or_update(self):
         start = datetime.datetime.now()
