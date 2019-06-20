@@ -20,7 +20,7 @@ user_agent = [
     "Mozilla/5.0 (Linux; U; Android 4.4.4; zh-cn; HM NOTE 1LTETD Build/KTU84P) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Mobile Safari/537.36 XiaoMi/MiuiBrowser/2.0.1"
 ]
 
-headers = {'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:59.0) Gecko/20100101 Firefox/59.0',
+headers = {'User-Agent': 'Mozilla/5.0 (Linux; U; Android 4.4.4; zh-cn; HM NOTE 1LTETD Build/KTU84P) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Mobile Safari/537.36 XiaoMi/MiuiBrowser/2.0.1',
            'Accept-Encoding': 'gzip, deflate',
            'Accept- Language': 'en - US, en;q = 0.5'}
 
@@ -73,7 +73,7 @@ def get_defind_headers():
 async def aiohttp_get(url, headers, proxy=None):
     async with aiohttp.ClientSession() as session:
         try:
-            async with session.get(url, headers=headers, proxy=proxy, timeout=60) as resp:
+            async with session.get(url, headers=headers, proxy=proxy, timeout=10) as resp:
                 if resp.status == 200:
                     return await resp.json()
         except Exception as e:

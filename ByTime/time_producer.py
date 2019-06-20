@@ -73,7 +73,7 @@ class Producer(threading.Thread):
         if not goods_id:
             return
         goods = self.goods_id_object.get(goods_id)
-        sell_num = int(item.get('sell_num'))
+        sell_num = tools.get_sell_num(item.get('sell_num'))
         shop_id = item.get('shop_id')
         goods_price = item.get('discount_price') / 100
         goods_name = item.get('name')

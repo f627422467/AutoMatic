@@ -23,7 +23,7 @@ async def exec_data(item, goods, cids, semaphore):
         if not goods_id:
             return
         try:
-            sell_num = int(item.get('sell_num'))
+            sell_num = tools.get_sell_num(item.get('sell_num'))
         except Exception as e:
             print("转化销量失败：%s" % e)
             return

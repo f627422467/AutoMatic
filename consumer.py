@@ -40,13 +40,16 @@ class Consumer(threading.Thread):
                 # 唤醒前所有在等待的生产者线程
                 is_empty = self.task.full()
                 self.queue.put('stop')
+                print("%s 获得锁" % self.name)
                 self.lock.acquire()
+                try:
+                    self.save_or_update()
+                    if is_empty:
+                        self.event.set()
+                finally:
                 # print("%s 获得锁" % self.name)
-                self.save_or_update()
-                if is_empty:
-                    self.event.set()
-                self.lock.release()
-                # print("%s 释放锁" % self.name)
+                    self.lock.release()
+                print("%s 释放锁" % self.name)
                 self.queue.get()
                 self.queue.task_done()
 
@@ -59,7 +62,7 @@ class Consumer(threading.Thread):
             self.task.task_done()
         if self.type == 'goods_update':
             self.loop.run_until_complete(Goods.batch_update(items))
-        elif type == 'goods_insert':
+        elif self.type == 'goods_insert':
             self.loop.run_until_complete(Goods.batch_insert(items))
         elif self.type == 'goods_item':
             self.loop.run_until_complete(Goods_Item.batch_insert(items))

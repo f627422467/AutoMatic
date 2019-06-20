@@ -32,7 +32,7 @@ async def get_goods_by_shop(shop_id, page):
     params = {
         'shop_id': shop_id,
         'page': page,
-        'pageSize': 20,
+        'size': 10,
         'b_type_new': 0,
         'type': 5,
         'sort': 1
@@ -41,7 +41,27 @@ async def get_goods_by_shop(shop_id, page):
     headers = utils.get_defind_headers()
     headers['User-Agent'] = utils.random_agent()
     headers['Origin'] = 'https://haohuo.jinritemai.com'
-    headers['Referer'] = 'https://haohuo.jinritemai.com/views/shop/index?id=%s' % shop_id
+    headers[
+        'Referer'] = 'https://haohuo.jinritemai.com/views/shop/index?id=%s&origin_type=0&origin_id=0&new_source_type=47&new_source_id=0&source_type=47&source_id=0&come_from=0' % shop_id
+    proxy = utils.get_proxies()
+    return await utils.aiohttp_get(url, headers, proxy)
+
+
+async def get_goods_by_shop_sort(shop_id, page, type, sort):
+    params = {
+        'shop_id': shop_id,
+        'page': page,
+        'size': 10,
+        'b_type_new': 0,
+        'type': type,
+        'sort': sort
+    }
+    url = 'https://haohuo.snssdk.com/productcategory/getShopList?' + urlencode(params)
+    headers = utils.get_defind_headers()
+    headers['User-Agent'] = utils.random_agent()
+    headers['Origin'] = 'https://haohuo.jinritemai.com'
+    headers[
+        'Referer'] = 'https://haohuo.jinritemai.com/views/shop/index?id=%s&origin_type=0&origin_id=0&new_source_type=47&new_source_id=0&source_type=47&source_id=0&come_from=0' % shop_id
     proxy = utils.get_proxies()
     return await utils.aiohttp_get(url, headers, proxy)
 
@@ -310,7 +330,14 @@ def get_goods(goods_id):
         print("请求异常：%s" % e)
         pass
 
+def get_sell_num(sell_num):
+    if sell_num.__contains__("+"):
+        return sell_num.strip('+')
+    elif sell_num.__contains__("万"):
+        return int(round(float(sell_num.strip('万'))*10000,0))
+    else:
+        return sell_num
 
 if __name__ == '__main__':
-    # reutrn_value(False)
-    print(aiomysql.escape_string("?"))
+    sell_num = get_sell_num('9.12万')
+    print(sell_num)

@@ -22,7 +22,8 @@ if __name__ == '__main__':
     loop = asyncio.get_event_loop()
     loop.run_until_complete(orm.create_pool(loop=loop, **configs.db))
     shops = loop.run_until_complete(Shop.findAll())
-    # shops = loop.run_until_complete(Shop.findAll('shop_id=?', 'hmSuxrl'))
+    # shop_id = 'pahyIe'
+    # shops = loop.run_until_complete(Shop.findAll('shop_id=?', shop_id))
     q_task = queue.Queue(maxsize=0)
     for shop in shops:
         q_task.put(shop)
@@ -37,6 +38,7 @@ if __name__ == '__main__':
     # shop_id_object = tools.list_to_dict(shops, 'shop_id')
 
     all_goods = loop.run_until_complete(Goods.findAll())
+    # all_goods = loop.run_until_complete(Goods.findAll('shop_id=?', shop_id))
     goods_id_object = tools.list_to_dict(all_goods, "goods_id")
     print("商品总数%s" % len(all_goods))
 
@@ -75,7 +77,7 @@ if __name__ == '__main__':
     #     #                                         goods_id_object, goods_id_tmp, cids)
     #     #     pc.daemon = True
     #     #     pc.start()
-    for i in range(900):
+    for i in range(300):
         p = shop_producer.Producer(i, q_task, q_goods, q_goods_insert, q_goods_item, q_goods_tmp, event,
                                    global_goods_ids, goods_id_object, goods_id_tmp, cids)
         p.start()
@@ -86,6 +88,7 @@ if __name__ == '__main__':
     q_goods_item.join()
     q_goods_tmp.join()
     q_stop.join()
+    print("总共抓取了%s商品" % len(global_goods_ids))
     print("主程序结束")
     end = datetime.datetime.now()
     print('Cost {} seconds'.format(end - start))

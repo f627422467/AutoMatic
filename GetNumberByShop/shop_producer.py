@@ -44,6 +44,8 @@ class Producer(threading.Thread):
                     self.global_goods_ids.append(goods_id)
                     one = loop.run_until_complete(tools.get_goods_by_id(goods_id))
                     if one:
+                        if int(one.get('biz_type')) != 1:
+                            continue
                         item = one.get('data')
                         shop_id = item.get('shop_id')
                         shop_tel = item.get('shop_tel')
@@ -96,6 +98,8 @@ class Producer(threading.Thread):
                     goods_id = item.get('product_id')
                     one = loop.run_until_complete(tools.get_goods_by_id(goods_id))
                     if one:
+                        if int(one.get('biz_type')) != 1:
+                            continue
                         item = one.get('data')
                         shop_id = item.get('shop_id')
                         shop_tel = item.get('shop_tel')
