@@ -12,7 +12,7 @@ import time
 
 
 class Consumer(threading.Thread):
-    def __init__(self, name, task, queue, event,lock, type, loop):
+    def __init__(self, name, task, queue, event, lock, type, loop):
         threading.Thread.__init__(self)
         self.name = "消费者" + str(name)
         self.task = task
@@ -55,10 +55,12 @@ class Consumer(threading.Thread):
     def save_or_update(self):
         start = datetime.datetime.now()
         items = []
-        for i in range(self.task.qsize()):
+        size = self.task.qsize()
+        for i in range(size):
             item = self.task.get()
             items.append(item)
             self.task.task_done()
+        print("开始存入数据库")
         if self.type == 'goods_update':
             self.loop.run_until_complete(Goods.batch_update(items))
         elif self.type == 'goods_insert':
