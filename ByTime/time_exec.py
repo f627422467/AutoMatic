@@ -24,8 +24,8 @@ def exec(goods, loop):
 
 if __name__ == '__main__':
 
-    # query_time = str(sys.argv[1])
-    query_time = '2019-06-22 12:00:00'
+    query_time = str(sys.argv[1])
+    # query_time = '2019-06-22 12:00:00'
     # query_time = '3348546531090388329'
     print(query_time)
     start = datetime.datetime.now()
