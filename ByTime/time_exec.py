@@ -18,6 +18,22 @@ import tools
 
 
 def exec(goods, loop):
+
+    print("子任务执行完毕")
+
+
+if __name__ == '__main__':
+
+    # query_time = str(sys.argv[1])
+    query_time = '2019-06-22 12:00:00'
+    # query_time = '3348546531090388329'
+    print(query_time)
+    start = datetime.datetime.now()
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(orm.create_pool(loop=loop, **configs.db))
+    # and is_selling=? ,True
+    goods = loop.run_until_complete(Goods.findAll('edit_time<?', query_time))
+    # goods = loop.run_until_complete(Goods.findAll('goods_id=?', "3349284677054817291"))
     q_task = queue.Queue(maxsize=0)
     for good in goods:
         q_task.put(good.goods_id)
@@ -43,9 +59,9 @@ def exec(goods, loop):
 
     global_goods_ids = []
 
-    q_goods = queue.Queue(maxsize=10000)
-    q_goods_item = queue.Queue(maxsize=10000)
-    q_goods_tmp = queue.Queue(maxsize=10000)
+    q_goods = queue.Queue(maxsize=0)
+    q_goods_item = queue.Queue(maxsize=0)
+    q_goods_tmp = queue.Queue(maxsize=0)
 
     q_stop = queue.Queue(maxsize=10)
     c1 = consumer.Consumer(1, q_goods, q_stop, event, lock, 'goods_update', loop)
@@ -68,23 +84,6 @@ def exec(goods, loop):
     q_goods_item.join()
     q_goods_tmp.join()
     q_stop.join()
-
-
-if __name__ == '__main__':
-
-    # query_time = str(sys.argv[1])
-    query_time = '2019-06-22 09:00:00'
-    # query_time = '3348546531090388329'
-    print(query_time)
-    start = datetime.datetime.now()
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(orm.create_pool(loop=loop, **configs.db))
-    # and is_selling=? ,True
-    goods = loop.run_until_complete(Goods.findAll('edit_time<?', query_time))
-    # goods = loop.run_until_complete(Goods.findAll('goods_id=?', "3349284677054817291"))
-    while (len(goods) > 0):
-        exec(goods, loop)
-        goods = loop.run_until_complete(Goods.findAll('edit_time<?', query_time))
 
     print("主程序结束")
     end = datetime.datetime.now()
