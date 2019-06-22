@@ -56,8 +56,9 @@ class Consumer(threading.Thread):
         start = datetime.datetime.now()
         items = []
         size = self.task.qsize()
+        print("执行的size：%s" % size)
         for i in range(size):
-            item = self.task.get()
+            item = self.task.get(block=False)
             items.append(item)
             self.task.task_done()
         print("开始存入数据库")
