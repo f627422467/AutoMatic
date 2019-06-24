@@ -3,6 +3,7 @@ from ORM import orm
 from Models.Shop import Shop
 from Models.Goods import Goods, Goods_Item, Goods_Tmp
 from Models.Categorys import Category_Cid
+from Models.Shop import Shop_Number
 import datetime
 import asyncio
 from config import configs
@@ -70,5 +71,7 @@ class Consumer(threading.Thread):
             self.loop.run_until_complete(Goods_Item.batch_insert(items))
         elif self.type == 'goods_tmp':
             self.loop.run_until_complete(Goods_Tmp.batch_update(items))
+        elif self.type == 'shop_number':
+            self.loop.run_until_complete(Shop_Number.batch_update(items))
         end = datetime.datetime.now()
         print(u"更新了%s：%s条，%s seconds" % (self.type, len(items), end - start))

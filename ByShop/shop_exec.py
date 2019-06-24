@@ -35,6 +35,8 @@ if __name__ == '__main__':
         if not cids.__contains__(category_cid.cid):
             cids.append(category_cid.cid)
 
+
+
     # shop_id_object = tools.list_to_dict(shops, 'shop_id')
 
     all_goods = loop.run_until_complete(Goods.findAll())
