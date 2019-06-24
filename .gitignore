@@ -2667,3 +2667,6 @@
 /ByZhiDian/__pycache__/*.pyc
 /GetNumberByShop/__pycache__/*.pyc
 /__pycache__/*.pyc
+/ByShop/__pycache__/*.pyc
+/Models/__pycache__/*.pyc
+/ORM/__pycache__/*.pyc
