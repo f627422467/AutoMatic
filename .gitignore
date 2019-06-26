@@ -2667,6 +2667,9 @@
 /ByZhiDian/__pycache__/*.pyc
 /GetNumberByShop/__pycache__/*.pyc
 /__pycache__/*.pyc
+/ByShop/__pycache__/*.pyc
+/Models/__pycache__/*.pyc
+/ORM/__pycache__/*.pyc
 /venv/Lib/site-packages/xlwt/__pycache__/*.pyc
 /Demo/__pycache__/test_consumer.cpython-37.pyc
 /Demo/__pycache__/test_producer.cpython-37.pyc
