@@ -77,5 +77,5 @@ async def aiohttp_get(url, headers, proxy=None):
                 if resp.status == 200:
                     return await resp.json()
         except Exception as e:
-            print("请求异常：%s" % str(e))
+            print("请求异常：%s,代理IP为：%s" % (str(e),proxy))
             pass

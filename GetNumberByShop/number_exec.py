@@ -50,7 +50,7 @@ if __name__ == '__main__':
     c1.daemon = True
     c1.start()
 
-    for i in range(600):
+    for i in range(100):
         p = number_producer.Producer(i, q_task, q_number, event, global_goods_ids,shop_key)
         p.start()
 
