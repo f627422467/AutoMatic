@@ -17,15 +17,10 @@ import datetime
 import tools
 
 
-def exec(goods, loop):
-
-    print("子任务执行完毕")
-
-
 if __name__ == '__main__':
 
     query_time = str(sys.argv[1])
-    # query_time = '2019-06-22 12:00:00'
+    # query_time = '2019-06-28 00:00:00'
     # query_time = '3348546531090388329'
     print(query_time)
     start = datetime.datetime.now()
@@ -74,7 +69,7 @@ if __name__ == '__main__':
     c3.daemon = True
     c3.start()
 
-    for i in range(900):
+    for i in range(600):
         p = time_producer.Producer(i, q_task, q_goods, q_goods_item, q_goods_tmp, event, global_goods_ids,
                                    goods_id_object, goods_id_tmp, cids)
         p.start()

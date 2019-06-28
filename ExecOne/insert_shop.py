@@ -29,7 +29,7 @@ if __name__ == '__main__':
     loop = asyncio.get_event_loop()
     loop.run_until_complete(orm.create_pool(loop=loop, **configs.db))
 
-    with open(r'F:\PyCharmProjects\AutoMatic\shop_ids.txt', 'r', encoding='utf-8') as f:
+    with open(r'F:\Code\AutoMatic\shop_ids.txt', 'r', encoding='utf-8') as f:
         shop_ids = f.readlines()
         for shop_id in shop_ids:
             shop_id = shop_id.strip('\n')
