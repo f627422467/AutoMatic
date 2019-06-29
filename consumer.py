@@ -59,9 +59,10 @@ class Consumer(threading.Thread):
         size = self.task.qsize()
         print("执行的size：%s" % size)
         for i in range(size):
-            item = self.task.get(block=False)
+            # print("获取item")
+            item = self.task.get_nowait()
             items.append(item)
-            self.task.task_done()
+
         print("开始存入数据库")
         if self.type == 'goods_update':
             self.loop.run_until_complete(Goods.batch_update(items))
@@ -73,5 +74,7 @@ class Consumer(threading.Thread):
             self.loop.run_until_complete(Goods_Tmp.batch_update(items))
         elif self.type == 'shop_number':
             self.loop.run_until_complete(Shop_Number.batch_update(items))
+        for i in range(size):
+            self.task.task_done()
         end = datetime.datetime.now()
         print(u"更新了%s：%s条，%s seconds" % (self.type, len(items), end - start))
