@@ -22,8 +22,6 @@ if __name__ == '__main__':
     loop = asyncio.get_event_loop()
     loop.run_until_complete(orm.create_pool(loop=loop, **configs.db))
     shops = loop.run_until_complete(Shop.findAll())
-    # shop_id = 'pahyIe'
-    # shops = loop.run_until_complete(Shop.findAll('shop_id=?', shop_id))
     q_task = queue.Queue(maxsize=0)
     for shop in shops:
         q_task.put(shop)
@@ -35,12 +33,7 @@ if __name__ == '__main__':
         if not cids.__contains__(category_cid.cid):
             cids.append(category_cid.cid)
 
-
-
-    # shop_id_object = tools.list_to_dict(shops, 'shop_id')
-
     all_goods = loop.run_until_complete(Goods.findAll())
-    # all_goods = loop.run_until_complete(Goods.findAll('shop_id=?', shop_id))
     goods_id_object = tools.list_to_dict(all_goods, "goods_id")
     print("商品总数%s" % len(all_goods))
 
@@ -55,10 +48,10 @@ if __name__ == '__main__':
         event.clear()
 
     global_goods_ids = []
-    q_goods = queue.Queue(maxsize=30000)
-    q_goods_insert = queue.Queue(maxsize=30000)
-    q_goods_item = queue.Queue(maxsize=30000)
-    q_goods_tmp = queue.Queue(maxsize=30000)
+    q_goods = queue.Queue(maxsize=0)
+    q_goods_insert = queue.Queue(maxsize=0)
+    q_goods_item = queue.Queue(maxsize=0)
+    q_goods_tmp = queue.Queue(maxsize=0)
 
     q_stop = queue.Queue(maxsize=10)
     c1 = consumer.Consumer(1, q_goods, q_stop, event, lock, 'goods_update', loop)
@@ -74,12 +67,7 @@ if __name__ == '__main__':
     c3.daemon = True
     c3.start()
 
-    # for i in range(900):
-    #     #     pc = shop_producer_consumer.Producer(i, q_datas, q_goods,q_goods_insert, q_goods_item, q_goods_tmp, event,
-    #     #                                         goods_id_object, goods_id_tmp, cids)
-    #     #     pc.daemon = True
-    #     #     pc.start()
-    for i in range(900):
+    for i in range(600):
         p = shop_producer.Producer(i, q_task, q_goods, q_goods_insert, q_goods_item, q_goods_tmp, event,
                                    global_goods_ids, goods_id_object, goods_id_tmp, cids)
         p.start()

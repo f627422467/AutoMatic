@@ -117,6 +117,18 @@ async def get_goods_by_id(goods_id):
     proxy = utils.get_proxies()
     return await utils.aiohttp_get(url, headers, proxy)
 
+async def get_num_goods_by_id(goods_id):
+    params = {
+        'id': goods_id,
+        'b_type_new': 3
+    }
+    url = "https://xd.snssdk.com/product/ajaxstaticitem?" + urlencode(params)
+    headers = utils.get_defind_headers()
+    headers['User-Agent'] = utils.random_agent()
+    headers['Host'] = 'xd.snssdk.com'
+    proxy = utils.get_proxies()
+    return await utils.aiohttp_get(url, headers, proxy)
+
 
 # 获取所有分类信息
 def get_category_all():

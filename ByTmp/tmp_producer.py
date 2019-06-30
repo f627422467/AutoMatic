@@ -23,7 +23,7 @@ class Producer(threading.Thread):
             goods_id = self.q_goods.get()
             print(u"开始抓取商品%s" % goods_id)
             self.q_goods.task_done()
-            item = loop.run_until_complete(tools.get_goods_by_id(goods_id))
+            item = loop.run_until_complete(tools.get_num_goods_by_id(goods_id))
             if not item or not item.get('data'):
                 continue
             if not item.get('data').get('name') or item.get('data').get('name') == '':
