@@ -128,7 +128,7 @@ if __name__ == '__main__':
     if event.isSet:
         event.clear()
 
-    for i in range(5):
+    for i in range(100):
         p = recommend_producer.Producer(i, q_data, event, global_page, global_goods_ids)
         p.start()
 
