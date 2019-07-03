@@ -38,10 +38,10 @@ class Producer(threading.Thread):
                     break
                 items = json.get('data').get('list')
                 for item in items:
-                    sell_num = item.get('sell_num')
+                    sell_num = tools.get_sell_num(item.get('sell_num'))
                     goods_id = item.get('product_id')
-                    # if sell_num < 1:
-                    #     continue
+                    if sell_num < 1:
+                        continue
                     if self.global_goods_ids.__contains__(goods_id):
                         continue
                     self.global_goods_ids.append(goods_id)

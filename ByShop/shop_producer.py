@@ -29,11 +29,11 @@ class Producer(threading.Thread):
             if self.q_shops.empty():
                 break
             shop_id = self.q_shops.get().shop_id
-            print("开始抓取店铺%s" % shop_id)
+            # print("开始抓取店铺%s" % shop_id)
             page = 0
             while page <= 1000:
                 json = loop.run_until_complete(tools.get_first_goods_by_shop(shop_id, page))
-                print("第%s页" % page)
+                # print("第%s页" % page)
                 if json is None:
                     print("抓取店铺%s完毕，总页数：%s" % (shop_id, page))
                     break
@@ -73,7 +73,7 @@ class Producer(threading.Thread):
             page = 0
             while page <= 1000:
                 json = loop.run_until_complete(tools.get_goods_by_shop(shop_id, page))
-                print("第%s页" % page)
+                # print("第%s页" % page)
                 if json is None:
                     print("抓取店铺%s完毕，总页数：%s" % (shop_id, page))
                     break
@@ -112,7 +112,7 @@ class Producer(threading.Thread):
             page = 0
             while page <= 1000:
                 json = loop.run_until_complete(tools.get_goods_by_shop_sort(shop_id, page, 6, 0))
-                print("第%s页" % page)
+                # print("第%s页" % page)
                 if json is None:
                     print("抓取店铺%s完毕，总页数：%s" % (shop_id, page))
                     break
@@ -151,7 +151,7 @@ class Producer(threading.Thread):
             page = 0
             while page <= 1000:
                     json = loop.run_until_complete(tools.get_goods_by_shop_sort(shop_id, page, 6, 1))
-                    print("第%s页" % page)
+                    # print("第%s页" % page)
                     if json is None:
                         print("抓取店铺%s完毕，总页数：%s" % (shop_id, page))
                         break
@@ -188,7 +188,7 @@ class Producer(threading.Thread):
                                 self.event.set()
                     page += 1
             self.q_shops.task_done()
-            print("剩余店铺：%s" % self.q_shops.qsize())
+            # print("剩余店铺：%s" % self.q_shops.qsize())
         self.event.set()
         print(self.name + "结束")
 

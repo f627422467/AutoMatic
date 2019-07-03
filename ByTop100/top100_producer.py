@@ -49,6 +49,9 @@ class Producer(threading.Thread):
                         item = one.get('data')
                     else:
                         continue
+                    sell_num = tools.get_sell_num(item.get('sell_num'))
+                    if sell_num < 1:
+                        continue
                     # 判断栈是否已经满
                     if self.queue.full():
                         print("队列已满，总数%s" % self.queue.qsize())

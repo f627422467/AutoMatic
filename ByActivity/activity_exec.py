@@ -120,7 +120,9 @@ if __name__ == '__main__':
     #夏季爆款
     #activity_id = 1560850443288
     #避暑神器
-    activity_id = 1561098167289
+    # activity_id = 1561098167289
+    #夏日生鲜专场
+    activity_id = 1561879261298
     _ = tools.get_random_num(12)
     json = loop.run_until_complete(tools.get_activity_by_id(activity_id, _))
     if json is None:

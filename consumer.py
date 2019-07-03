@@ -42,13 +42,13 @@ class Consumer(threading.Thread):
                 is_empty = self.task.full()
                 self.queue.put('stop')
                 self.lock.acquire()
-                print("%s 获得锁" % self.name)
+                # print("%s 获得锁" % self.name)
                 try:
                     self.save_or_update()
                     if is_empty:
                         self.event.set()
                 finally:
-                    print("%s 释放锁" % self.name)
+                    # print("%s 释放锁" % self.name)
                     self.lock.release()
                     self.queue.get()
                     self.queue.task_done()
@@ -57,13 +57,13 @@ class Consumer(threading.Thread):
         start = datetime.datetime.now()
         items = []
         size = self.task.qsize()
-        print("执行的size：%s" % size)
+        # print("执行的size：%s" % size)
         for i in range(size):
             # print("获取item")
             item = self.task.get_nowait()
             items.append(item)
 
-        print("开始存入数据库")
+        # print("开始存入数据库")
         if self.type == 'goods_update':
             self.loop.run_until_complete(Goods.batch_update(items))
         elif self.type == 'goods_insert':
@@ -74,8 +74,10 @@ class Consumer(threading.Thread):
             self.loop.run_until_complete(Goods_Tmp.batch_update(items))
         elif self.type == 'shop_number':
             self.loop.run_until_complete(Shop_Number.batch_update(items))
-        print("存入数据库完成")
+        # print("存入数据库完成")
+        start1 = datetime.datetime.now()
         for i in range(size):
             self.task.task_done()
         end = datetime.datetime.now()
+        print(u"task_done花费了，%s seconds，%s size" % (end - start1,len(items)))
         print(u"更新了%s：%s条，%s seconds" % (self.type, len(items), end - start))
