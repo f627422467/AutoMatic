@@ -21,16 +21,18 @@ if __name__ == '__main__':
 
     query_time = str(sys.argv[1])
     type = str(sys.argv[2])
+    # query_time = "2019-07-03 06:00:00"
+    # type = "1"
     print(query_time)
     print(type)
+    if type == "2":
+        sys.exit()
     start = datetime.datetime.now()
     loop = asyncio.get_event_loop()
     loop.run_until_complete(orm.create_pool(loop=loop, **configs.db))
     # and is_selling=? ,True
     if(type == "1"):
-        goods = loop.run_until_complete(Goods.findAll('edit_time<? and is_selling = 1 and sell_num > 0', query_time))
-    elif(type == "2"):
-        goods = loop.run_until_complete(Goods.findAll('edit_time<? and is_selling = 0 and sell_num > 0', query_time))
+        goods = loop.run_until_complete(Goods.findAll('edit_time<? and sell_num > 0', query_time))
     elif(type == "3"):
         goods = loop.run_until_complete(Goods.findAll('edit_time<? and sell_num <= 0', query_time))
     else:

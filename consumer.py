@@ -74,6 +74,7 @@ class Consumer(threading.Thread):
             self.loop.run_until_complete(Goods_Tmp.batch_update(items))
         elif self.type == 'shop_number':
             self.loop.run_until_complete(Shop_Number.batch_update(items))
+        print("存入数据库完成")
         for i in range(size):
             self.task.task_done()
         end = datetime.datetime.now()
