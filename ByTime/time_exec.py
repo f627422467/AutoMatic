@@ -79,7 +79,7 @@ if __name__ == '__main__':
 
     for i in range(600):
         p = time_producer.Producer(i, q_task, q_goods, q_goods_item, q_goods_tmp, event, global_goods_ids,
-                                   goods_id_object, goods_id_tmp, cids)
+                                   goods_id_object, goods_id_tmp, cids,type)
         p.start()
 
     q_task.join()
