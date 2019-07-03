@@ -1,7 +1,7 @@
 import aiohttp
 import asyncio
 import tools
-url = "https://xd.snssdk.com/product/ajaxstaticitem?b_type_new=3&id=3298464650244531351&device_id=57954229867 HTTP/1.1"
+url = "https://xd.snssdk.com/product/ajaxstaticitem?b_type_new=3&id=3337747430576913576&device_id=57954229867 HTTP/1.1"
 headers = {'User-Agent': ' Mozilla/5.0 (Linux; Android 9; MIX 2S Build/PKQ1.180729.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/62.0.3202.84 Mobile Safari/537.36 NewsArticle/7.3.0 ToutiaoMicroApp/1.22.0.0 PluginVersion/73005',
            'Accept-Encoding': 'gzip',
            # 'Accept- Language': 'en - US, en;q = 0.5',
@@ -26,5 +26,5 @@ async def get_message():
 if __name__ == '__main__':
     loop = asyncio.get_event_loop()
     # item = loop.run_until_complete(get_message())
-    item = loop.run_until_complete(tools.get_num_goods_by_id("3352401786169339668"))
+    item = loop.run_until_complete(tools.get_num_goods_by_id("3337747430576913576"))
     print(item)
