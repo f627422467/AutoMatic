@@ -21,7 +21,7 @@ if __name__ == '__main__':
 
     query_time = str(sys.argv[1])
     type = str(sys.argv[2])
-    # query_time = "2019-07-03 06:00:00"
+    # query_time = "2019-07-05 00:00:00"
     # type = "1"
     print(query_time)
     print(type)

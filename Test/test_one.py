@@ -12,8 +12,7 @@ import time
 import datetime
 import tools
 
-if __name__ == '__main__':
-
+def exec():
     q_task = queue.Queue(maxsize=0)
     for i in range(10):
         q_task.put(i)

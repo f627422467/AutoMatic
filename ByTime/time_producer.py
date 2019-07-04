@@ -94,6 +94,8 @@ class Producer(threading.Thread):
             # 较上次增量
             sell_num_old = goods.sell_num
             add_num = sell_num - sell_num_old
+            if add_num < 0:
+                return
             goods.shop_id = shop_id
             goods.cid = cid
             goods.biz_type = biz_type

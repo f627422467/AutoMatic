@@ -31,40 +31,40 @@ async def check_shop(shop_id):
         print("%s已存在" % shop_id)
 
 
-if __name__ == '__main__':
-
+# if __name__ == '__main__':
+def exec(loop1):
     start = datetime.datetime.now()
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(orm.create_pool(loop=loop, **configs.db))
-
-    while True:
-        try:
-            print("%s 开始刷新页面" % datetime.datetime.now())
-            item = loop.run_until_complete(tools.get_tuijian_goods())
-            datas = item['data']
-            ids = []
-            for data in datas:
-                content = data['content']
-                if "haohuo" in content:
-                    content = json.loads(content)
-                    url = None
-                    if 'article_url' in content and "https://haohuo" in content['article_url']:
-                        url = content['article_url']
-                    elif 'raw_ad_data' in content:
-                        url = content['raw_ad_data']['web_url']
-                    else:
-                        print(content)
-                        continue
-                    goods_id = url[url.find('?id=') + 4:url.find('&')]
-                    item = loop.run_until_complete(tools.get_num_goods_by_id(goods_id))
-                    if not item or not item.get('data'):
-                        continue
-                    if not item.get('data').get('name') or item.get('data').get('name') == '':
-                        print("下架： %s" % goods_id)
-                        continue
-                    item = item.get('data')
-                    loop.run_until_complete(check_shop(item.get('shop_id')))
-        except Exception as e:
-            print(str(e))
-        time.sleep(10)
+    # loop = asyncio.get_event_loop()
+    # loop = asyncio.new_event_loop()
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop1)
+    # loop.run_until_complete(orm.create_pool(loop=loop, **configs.db))
+    try:
+        print("%s 开始刷新页面" % datetime.datetime.now())
+        item = loop.run_until_complete(tools.get_tuijian_goods())
+        datas = item['data']
+        ids = []
+        for data in datas:
+            content = data['content']
+            if "haohuo" in content:
+                content = json.loads(content)
+                url = None
+                if 'article_url' in content and "https://haohuo" in content['article_url']:
+                    url = content['article_url']
+                elif 'raw_ad_data' in content:
+                    url = content['raw_ad_data']['web_url']
+                else:
+                    print(content)
+                    continue
+                goods_id = url[url.find('?id=') + 4:url.find('&')]
+                item = loop.run_until_complete(tools.get_num_goods_by_id(goods_id))
+                if not item or not item.get('data'):
+                    continue
+                if not item.get('data').get('name') or item.get('data').get('name') == '':
+                    print("下架： %s" % goods_id)
+                    continue
+                item = item.get('data')
+                loop.run_until_complete(check_shop(item.get('shop_id')))
+    except Exception as e:
+        print(str(e))
 

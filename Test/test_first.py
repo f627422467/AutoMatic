@@ -29,8 +29,8 @@ async def get_message():
             print("请求异常：%s" % (str(e)))
             pass
 
-if __name__ == '__main__':
-    loop = asyncio.get_event_loop()
+def exec():
+    loop = asyncio.new_event_loop()
     item = loop.run_until_complete(get_message())
     datas = item['data']
     for data in datas:
