@@ -25,7 +25,7 @@ async def check_shop(shop_id):
     shop = await Shop.findAll('shop_id=?', [shop_id])
     if len(shop) == 0:
         print("不存在%s,开始插入" % shop_id)
-        shop = Shop(shop_id=shop_id, shop_url=shop_url)
+        shop = Shop(shop_id=shop_id, shop_url=shop_url,create_time=datetime.datetime.now())
         await shop.save()
     else:
         print("%s已存在" % shop_id)
