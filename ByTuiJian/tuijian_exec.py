@@ -32,12 +32,10 @@ async def check_shop(shop_id):
 
 
 # if __name__ == '__main__':
-def exec(loop1):
+def exec(loop):
     start = datetime.datetime.now()
     # loop = asyncio.get_event_loop()
     # loop = asyncio.new_event_loop()
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop1)
     # loop.run_until_complete(orm.create_pool(loop=loop, **configs.db))
     try:
         print("%s 开始刷新页面" % datetime.datetime.now())

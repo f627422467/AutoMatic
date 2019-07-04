@@ -10,15 +10,11 @@ import time
 def tick(loop):
     tuijian_exec.exec(loop)
 
-def tick2(loop):
-    tuijian_exec.exec(loop)
-
 if __name__ == '__main__':
     loop = asyncio.get_event_loop()
     loop.run_until_complete(orm.create_pool(loop=loop, **configs.db))
     scheduler = BlockingScheduler()
     scheduler.add_job(tick, 'interval', seconds=3,args=[loop],)
-    scheduler.add_job(tick2, 'interval', seconds=3, args=[loop], )
     print('Press Ctrl+{0} to exit'.format('Break' if os.name == 'nt' else 'C    '))
 
     try:
