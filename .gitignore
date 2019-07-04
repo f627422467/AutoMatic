@@ -3806,3 +3806,5 @@
 /venv/Scripts/f2py.exe
 /venv/Scripts/margins.exe
 /venv/Scripts/runxlrd.py
+/ByTuiJian/__pycache__/*.pyc
+/Test/__pycache__/*.pyc
