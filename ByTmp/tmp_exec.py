@@ -63,7 +63,7 @@ if __name__ == '__main__':
     c3.daemon = True
     c3.start()
 
-    for i in range(50):
+    for i in range(100):
         p = tmp_producer.Producer(i, q_task, q_goods, q_goods_item, q_goods_tmp, event, global_goods_ids,
                                   goods_id_object, goods_id_tmp, cids)
         p.start()
