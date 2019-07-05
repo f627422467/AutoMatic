@@ -266,6 +266,14 @@ class Model(dict, metaclass=ModelMetaclass):
         return [cls(**r) for r in rs]
 
     @classmethod
+    async def find_inner_edit_time(cls, inner_table, inner_key, inner_edit_time):
+        rs = await select('%s inner join %s on %s.%s = %s.%s and %s.edit_time < ?' % (
+            cls.__select__all__, inner_table, cls.__table__, cls.__primary_key__, inner_table, inner_key,inner_table), [inner_edit_time])
+        if len(rs) == 0:
+            return None
+        return [cls(**r) for r in rs]
+
+    @classmethod
     async def find(cls, pk):
         ' find object by primary key. '
         rs = await select('%s where `%s`=?' % (cls.__select__, cls.__primary_key__), [pk], 1)
