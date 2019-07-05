@@ -38,7 +38,9 @@ if __name__ == '__main__':
     print("商品总数%s" % len(all_goods))
 
     tmp_goods = loop.run_until_complete(Goods.find_inner(tools.get_temp_table(), 'goods_id'))
-    tmp_goods_id_object = tools.list_to_dict(tmp_goods, "goods_id")
+    tmp_goods_id_object = {}
+    if tmp_goods:
+        tmp_goods_id_object = tools.list_to_dict(tmp_goods, "goods_id")
 
     goods_tmp = loop.run_until_complete(Goods_Tmp.findAll())
     goods_id_tmp = tools.list_to_dict(goods_tmp, "goods_id")

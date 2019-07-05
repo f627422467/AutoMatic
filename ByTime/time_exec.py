@@ -21,7 +21,7 @@ if __name__ == '__main__':
 
     query_time = str(sys.argv[1])
     type = str(sys.argv[2])
-    # query_time = "2019-07-05 19:20:00"
+    # query_time = "2019-07-06 00:00:00"
     # type = "1"
     print(query_time)
     print(type)
@@ -45,7 +45,9 @@ if __name__ == '__main__':
     goods_id_object = tools.list_to_dict(goods, "goods_id")
 
     tmp_goods = loop.run_until_complete(Goods.find_inner(tools.get_temp_table(), 'goods_id'))
-    tmp_goods_id_object = tools.list_to_dict(tmp_goods, "goods_id")
+    tmp_goods_id_object = {}
+    if tmp_goods:
+        tmp_goods_id_object = tools.list_to_dict(tmp_goods, "goods_id")
 
     category_cids = loop.run_until_complete(Category_Cid.findAll())
     cids = []
