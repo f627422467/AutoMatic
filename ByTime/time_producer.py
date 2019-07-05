@@ -9,7 +9,7 @@ from Models.Goods import Goods, Goods_Item, Goods_Tmp
 
 class Producer(threading.Thread):
     def __init__(self, name, task, q_goods, q_goods_item, q_goods_tmp, event, global_goods_ids,
-                 goods_id_object, goods_id_tmp, cids,type):
+                 goods_id_object,tmp_goods_id_object, goods_id_tmp, cids,type):
         threading.Thread.__init__(self)
         self.name = "生产者" + str(name)
         self.task = task
@@ -19,6 +19,7 @@ class Producer(threading.Thread):
         self.event = event
         self.global_goods_ids = global_goods_ids
         self.goods_id_object = goods_id_object
+        self.tmp_goods_id_object = tmp_goods_id_object
         self.goods_id_tmp = goods_id_tmp
         self.cids = cids
         self.type = type
@@ -29,7 +30,9 @@ class Producer(threading.Thread):
             if self.task.empty():
                 break
             goods_id = self.task.get()
-            # print(u"开始生产%s" % goods_id)
+            if self.tmp_goods_id_object.__contains__(goods_id):
+                self.task.task_done()
+                continue
             if self.type == "1":
                 item = loop.run_until_complete(tools.get_num_goods_by_id(goods_id))
             else:

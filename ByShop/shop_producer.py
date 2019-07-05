@@ -9,7 +9,7 @@ from Models.Goods import Goods, Goods_Item, Goods_Tmp
 
 class Producer(threading.Thread):
     def __init__(self, name, q_shops, q_goods, q_goods_insert, q_goods_item, q_goods_tmp, event, global_goods_ids,
-                 goods_id_object, goods_id_tmp, cids):
+                 goods_id_object,tmp_goods_id_object, goods_id_tmp, cids):
         threading.Thread.__init__(self)
         self.name = "店铺生产者" + str(name)
         self.q_goods = q_goods
@@ -20,6 +20,7 @@ class Producer(threading.Thread):
         self.q_shops = q_shops
         self.global_goods_ids = global_goods_ids
         self.goods_id_object = goods_id_object
+        self.tmp_goods_id_object = tmp_goods_id_object
         self.goods_id_tmp = goods_id_tmp
         self.cids = cids
 
@@ -45,9 +46,10 @@ class Producer(threading.Thread):
                     break
                 items = json.get('data').get('list')
                 for item in items:
-                    # print(item)
-                    sell_num = tools.get_sell_num(item.get('sell_num'))
                     goods_id = item.get('product_id')
+                    if self.tmp_goods_id_object.__contains__(goods_id):
+                        continue
+                    sell_num = tools.get_sell_num(item.get('sell_num'))
                     if sell_num < 1:
                         continue
                     if self.global_goods_ids.__contains__(goods_id):
@@ -85,8 +87,10 @@ class Producer(threading.Thread):
                     break
                 items = json.get('data').get('list')
                 for item in items:
-                    sell_num = tools.get_sell_num(item.get('sell_num'))
                     goods_id = item.get('product_id')
+                    if self.tmp_goods_id_object.__contains__(goods_id):
+                        continue
+                    sell_num = tools.get_sell_num(item.get('sell_num'))
                     if sell_num < 1:
                         continue
                     if self.global_goods_ids.__contains__(goods_id):
@@ -124,8 +128,10 @@ class Producer(threading.Thread):
                     break
                 items = json.get('data').get('list')
                 for item in items:
-                    sell_num = tools.get_sell_num(item.get('sell_num'))
                     goods_id = item.get('product_id')
+                    if self.tmp_goods_id_object.__contains__(goods_id):
+                        continue
+                    sell_num = tools.get_sell_num(item.get('sell_num'))
                     if sell_num < 1:
                         continue
                     if self.global_goods_ids.__contains__(goods_id):
@@ -151,7 +157,6 @@ class Producer(threading.Thread):
             page = 0
             while page <= 1000:
                     json = loop.run_until_complete(tools.get_goods_by_shop_sort(shop_id, page, 6, 1))
-                    # print("第%s页" % page)
                     if json is None:
                         print("抓取店铺%s完毕，总页数：%s" % (shop_id, page))
                         break
@@ -163,8 +168,10 @@ class Producer(threading.Thread):
                         break
                     items = json.get('data').get('list')
                     for item in items:
-                        sell_num = tools.get_sell_num(item.get('sell_num'))
                         goods_id = item.get('product_id')
+                        if self.tmp_goods_id_object.__contains__(goods_id):
+                            continue
+                        sell_num = tools.get_sell_num(item.get('sell_num'))
                         if sell_num < 1:
                             continue
                         if self.global_goods_ids.__contains__(goods_id):
@@ -188,7 +195,6 @@ class Producer(threading.Thread):
                                 self.event.set()
                     page += 1
             self.q_shops.task_done()
-            # print("剩余店铺：%s" % self.q_shops.qsize())
         self.event.set()
         print(self.name + "结束")
 
@@ -238,9 +244,7 @@ class Producer(threading.Thread):
             item_add_num = sell_num - goods.item_last_sell_num
             if item_add_num > 100 or item_add_num < 0:
                 goods.item_last_sell_num = sell_num
-            # await goods.update()
             self.q_goods.put(goods)
-            # print("goods 队列：%s" % self.q_goods.qsize())
         else:
             # 新增
             is_Edit = False
@@ -257,25 +261,18 @@ class Producer(threading.Thread):
             goods.sell_num = sell_num
             goods.item_last_sell_num = sell_num
             self.q_goods_insert.put(goods)
-            # print("q_goods_insert 队列：%s" % self.q_goods_insert.qsize())
-            # goods.id = await goods.save()
         if is_Edit and item_add_num >= 100:
             goods_item = Goods_Item()
             goods_item.goods_id = goods.id
             goods_item.sell_num = sell_num
             goods_item.add_num = item_add_num
-            # await goods_item.save()
             self.q_goods_item.put(goods_item)
-            # print("q_goods_item 队列：%s" % self.q_goods_item.qsize())
         if is_Edit and goods.add_num > 0:
             tmp = self.goods_id_tmp.get(goods.id)
             if not tmp:
                 tmp = Goods_Tmp()
-            # await Goods_Tmp.del_by('goods_id=?', goods.id)
             tmp.goods_id = goods.id
             tmp.add_num = goods.add_num
             tmp.sell_num = goods.sell_num
             tmp.edit_time = datetime.datetime.now()
-            # await tmp.save()
             self.q_goods_tmp.put(tmp)
-            # print("q_goods_tmp 队列：%s" % self.q_goods_tmp.qsize())

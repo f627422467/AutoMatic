@@ -21,7 +21,7 @@ if __name__ == '__main__':
 
     query_time = str(sys.argv[1])
     type = str(sys.argv[2])
-    # query_time = "2019-07-05 00:00:00"
+    # query_time = "2019-07-05 19:20:00"
     # type = "1"
     print(query_time)
     print(type)
@@ -43,6 +43,9 @@ if __name__ == '__main__':
     print("商品总数%s" % q_task.qsize())
 
     goods_id_object = tools.list_to_dict(goods, "goods_id")
+
+    tmp_goods = loop.run_until_complete(Goods.find_inner(tools.get_temp_table(), 'goods_id'))
+    tmp_goods_id_object = tools.list_to_dict(tmp_goods, "goods_id")
 
     category_cids = loop.run_until_complete(Category_Cid.findAll())
     cids = []
@@ -79,7 +82,7 @@ if __name__ == '__main__':
 
     for i in range(600):
         p = time_producer.Producer(i, q_task, q_goods, q_goods_item, q_goods_tmp, event, global_goods_ids,
-                                   goods_id_object, goods_id_tmp, cids,type)
+                                   goods_id_object,tmp_goods_id_object, goods_id_tmp, cids,type)
         p.start()
 
     q_task.join()

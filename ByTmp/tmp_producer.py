@@ -103,9 +103,7 @@ class Producer(threading.Thread):
             item_add_num = sell_num - goods.item_last_sell_num
             if item_add_num > 100 or item_add_num < 0:
                 goods.item_last_sell_num = sell_num
-            # await goods.update()
             self.q_goods.put(goods)
-            # print("goods 队列：%s" % self.q_goods.qsize())
         else:
             raise Exception("出错！数据库中没有查询到相应值")
         if item_add_num >= 100:
@@ -113,19 +111,14 @@ class Producer(threading.Thread):
             goods_item.goods_id = goods.id
             goods_item.sell_num = sell_num
             goods_item.add_num = item_add_num
-            # await goods_item.save()
             self.q_goods_item.put(goods_item)
-            # print("q_goods_item 队列：%s" % self.q_goods_item.qsize())
         if goods.add_num > 0:
             tmp = self.goods_id_tmp.get(goods.id)
             if not tmp:
                 tmp = Goods_Tmp()
-            # await Goods_Tmp.del_by('goods_id=?', goods.id)
             tmp.goods_id = goods.id
             tmp.add_num = goods.add_num
             tmp.sell_num = goods.sell_num
             tmp.edit_time = datetime.datetime.now()
-            # await tmp.save()
             self.q_goods_tmp.put(tmp)
-            # print("q_goods_tmp 队列：%s" % self.q_goods_tmp.qsize())
 

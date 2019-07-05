@@ -26,5 +26,6 @@ async def get_message():
 if __name__ == '__main__':
     loop = asyncio.get_event_loop()
     # item = loop.run_until_complete(get_message())
-    item = loop.run_until_complete(tools.get_num_goods_by_id("3337747430576913576"))
+    item = loop.run_until_complete(tools.get_num_goods_by_id("3349129203542025053"))
     print(item)
+    print(item.get('data').get('sell_num'))

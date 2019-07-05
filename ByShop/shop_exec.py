@@ -2,7 +2,7 @@ import sys
 
 sys.path.append("D:\\AutoMatic")
 sys.path.append("E:\\AutoMatic\\")
-from ByShop import shop_producer, shop_producer_consumer
+from ByShop import shop_producer
 import consumer
 import threading
 import queue
@@ -37,6 +37,9 @@ if __name__ == '__main__':
     goods_id_object = tools.list_to_dict(all_goods, "goods_id")
     print("商品总数%s" % len(all_goods))
 
+    tmp_goods = loop.run_until_complete(Goods.find_inner(tools.get_temp_table(), 'goods_id'))
+    tmp_goods_id_object = tools.list_to_dict(tmp_goods, "goods_id")
+
     goods_tmp = loop.run_until_complete(Goods_Tmp.findAll())
     goods_id_tmp = tools.list_to_dict(goods_tmp, "goods_id")
 
@@ -69,7 +72,7 @@ if __name__ == '__main__':
 
     for i in range(900):
         p = shop_producer.Producer(i, q_task, q_goods, q_goods_insert, q_goods_item, q_goods_tmp, event,
-                                   global_goods_ids, goods_id_object, goods_id_tmp, cids)
+                                   global_goods_ids,tmp_goods_id_object, goods_id_object, goods_id_tmp, cids)
         p.start()
 
     q_task.join()
