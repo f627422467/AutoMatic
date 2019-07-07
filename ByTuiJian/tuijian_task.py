@@ -1,6 +1,9 @@
 from datetime import datetime
 import os
 from apscheduler.schedulers.blocking import BlockingScheduler
+import sys
+sys.path.append("/opt/AutoMatic")
+sys.path.append("D:\\AutoMatic\\")
 from ByTuiJian import tuijian_exec
 import asyncio
 from ORM import orm
