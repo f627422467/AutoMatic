@@ -1,6 +1,6 @@
 import sys
 
-sys.path.append("/opt/AutoMatic")
+sys.path.append("/opt/AutoMatic/")
 sys.path.append("D:\\AutoMatic\\")
 from ByTmp import tmp_producer
 import consumer
