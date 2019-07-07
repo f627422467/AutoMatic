@@ -44,6 +44,8 @@ def exec(loop):
         ids = []
         for data in datas:
             content = data['content']
+            shop_id = None
+            goods_id = None
             if "haohuo" in content:
                 content = json.loads(content)
                 url = None
@@ -51,18 +53,43 @@ def exec(loop):
                     url = content['article_url']
                 elif 'raw_ad_data' in content:
                     url = content['raw_ad_data']['web_url']
+                elif 'commoditys' in content:
+                    commoditys = content['commoditys']
+                    for commodity in commoditys:
+                        if 'charge_url' in commodity:
+                            url = commodity['charge_url']
+                            break
+                elif 'data' in content:
+                    data2s = content['data']
+                    for data2 in data2s:
+                        if 'raw_data' in data2:
+                            raw_data = data2['raw_data']
+                            if 'deversion' in raw_data:
+                                deversion = raw_data['deversion']
+                                url = deversion['schema_url']
+                                if 'shop%2Findex%3Fid%3D' in url:
+                                    shop_id = url[url.find('id%3D')+5:url.find('%26')]
+                                elif 'product%2Fitem2%3Fid%3D' in url:
+                                    goods_id = url[url.find('id%3D')+5:url.find('%26')]
+                                break
+                elif "content" in content and "https://haohuo" in content['content']:
+                    url = content['content']
                 else:
                     print(content)
                     continue
-                goods_id = url[url.find('?id=') + 4:url.find('&')]
-                item = loop.run_until_complete(tools.get_num_goods_by_id(goods_id))
-                if not item or not item.get('data'):
-                    continue
-                if not item.get('data').get('name') or item.get('data').get('name') == '':
-                    print("下架： %s" % goods_id)
-                    continue
-                item = item.get('data')
-                loop.run_until_complete(check_shop(item.get('shop_id')))
+                if not shop_id:
+                    if not goods_id :
+                        goods_id = url[url.find('?id=') + 4:url.find('&')]
+                        print(goods_id)
+                    item = loop.run_until_complete(tools.get_num_goods_by_id(goods_id))
+                    if not item or not item.get('data'):
+                        continue
+                    if not item.get('data').get('name') or item.get('data').get('name') == '':
+                        print("下架： %s" % goods_id)
+                        continue
+                    item = item.get('data')
+                    shop_id = item.get('shop_id')
+                loop.run_until_complete(check_shop(shop_id))
     except Exception as e:
         print(str(e))
 
