@@ -74,12 +74,22 @@ def exec(loop):
                                 break
                 elif "content" in content and "https://haohuo" in content['content']:
                     url = content['content']
+                elif "log_pb" in content:
+                    log_pb = content['log_pb']
+                    if 'url_list' in log_pb:
+                        url_list = json.loads(log_pb['url_list'])
+                        for uri in url_list:
+                            if "https://haohuo" in uri:
+                                url = uri
                 else:
                     print(content)
                     continue
                 if not shop_id:
                     if not goods_id :
-                        goods_id = url[url.find('?id=') + 4:url.find('&')]
+                        if "id%3D" in url:
+                            goods_id = url[url.find('id%3D') + 5:url.find('%26')]
+                        else:
+                            goods_id = url[url.find('?id=') + 4:url.find('&')]
                         print(goods_id)
                     item = loop.run_until_complete(tools.get_num_goods_by_id(goods_id))
                     if not item or not item.get('data'):
