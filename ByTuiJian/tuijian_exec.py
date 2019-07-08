@@ -47,6 +47,7 @@ def exec(loop):
             shop_id = None
             goods_id = None
             if "haohuo" in content:
+                print("有haohuo")
                 content = json.loads(content)
                 url = None
                 if 'article_url' in content and "https://haohuo" in content['article_url']:
@@ -108,6 +109,7 @@ def exec(loop):
                         goods_ad.num = 1
                         loop.run_until_complete(Goods_Ad.save(goods_ad))
                     shop_id = item.get('shop_id')
+                print(shop_id)
                 loop.run_until_complete(check_shop(shop_id))
     except Exception as e:
         print(str(e))
