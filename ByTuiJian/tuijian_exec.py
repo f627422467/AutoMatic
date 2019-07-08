@@ -9,7 +9,7 @@ import queue
 import asyncio
 from ORM import orm
 from Models.Shop import Shop
-from Models.Goods import Goods, Goods_Item, Goods_Tmp
+from Models.Goods import Goods, Goods_Ad
 from Models.Categorys import Category_Cid
 from config import configs
 import time
@@ -64,7 +64,7 @@ def exec(loop):
                     for data2 in data2s:
                         if 'raw_data' in data2:
                             raw_data = data2['raw_data']
-                            if 'deversion' in raw_data:
+                            if 'deversion' in raw_data and raw_data['deversion']:
                                 deversion = raw_data['deversion']
                                 url = deversion['schema_url']
                                 if 'shop%2Findex%3Fid%3D' in url:
@@ -98,6 +98,15 @@ def exec(loop):
                         print("下架： %s" % goods_id)
                         continue
                     item = item.get('data')
+                    goods_ad = loop.run_until_complete(Goods_Ad.find_one('goods_id=?', goods_id))
+                    if goods_ad:
+                        goods_ad.num = goods_ad.num + 1
+                        loop.run_until_complete(Goods_Ad.update(goods_ad))
+                    else:
+                        goods_ad = Goods_Ad()
+                        goods_ad.goods_id = goods_id
+                        goods_ad.num = 1
+                        loop.run_until_complete(Goods_Ad.save(goods_ad))
                     shop_id = item.get('shop_id')
                 loop.run_until_complete(check_shop(shop_id))
     except Exception as e:

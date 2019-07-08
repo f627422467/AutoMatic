@@ -48,3 +48,10 @@ class Temp(orm.Model):
     TableId = orm.StringField(ddl='varchar(100)')
     TableName = orm.StringField(ddl='varchar(100)')
     DateTime = orm.DateTimeField()
+
+
+class Goods_Ad(orm.Model):
+    __table__ = 'goods_ad'
+    id = orm.IntegerField(primary_key=True)
+    goods_id = orm.StringField(ddl='varchar(100)')
+    num = orm.IntegerField(primary_key=False)
