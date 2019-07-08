@@ -1,16 +1,13 @@
 import aiohttp
 import asyncio
 import tools
-url = "https://xd.snssdk.com/product/ajaxstaticitem?b_type_new=3&id=3337747430576913576&device_id=57954229867 HTTP/1.1"
+url = "https://luban.jinritemai.com/product/tproduct/getGoodsCategory?__token=23233c0d33e4a9649d17658ce6637fc6&_=1562595264191"
 headers = {'User-Agent': ' Mozilla/5.0 (Linux; Android 9; MIX 2S Build/PKQ1.180729.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/62.0.3202.84 Mobile Safari/537.36 NewsArticle/7.3.0 ToutiaoMicroApp/1.22.0.0 PluginVersion/73005',
            'Accept-Encoding': 'gzip',
            # 'Accept- Language': 'en - US, en;q = 0.5',
            "Connection": "keep-alive",
-           #'Cookie':'install_id=77029700866;odin_tt=bf79ca74e216dfc7c399631690ef9bce205a49aeed34b1680ade1925ef92c2100d3d03bfb3511fc594700b8db6c10d69;qh[360]=1;sid_guard=1e4594d906681c45a9869793175f31b8%7C1560924815%7C5184000%7CSun%2C+18-Aug-2019+06%3A13%3A35+GMT;uid_tt=5c37550703d871b7c1481a0ce0003b63;sid_tt=1e4594d906681c45a9869793175f31b8;sessionid=1e4594d906681c45a9869793175f31b8;ttreq=1$932646705ddf9d5d962e36cd1eedfa465a41b731',
-           'Referer':'https://tmaservice.developer.toutiao.com?appid=tt7cca0a77e3e0cd15&version=0.0.161',
-            'x-xiaodian-device-id': '57954229867',
-            'x-xiaodian-install-id': '77029700866',
-            'Host': 'xd.snssdk.com'
+           'Cookie':'eed.js%3Asession=%7B%22id%22%3A%2216bc2b9b74754e-04dd9f608bad46-e343166-1fa400-16bc2b9b74871c%22%2C%22page%22%3A%2216bcf5c825e4f6-0048189e270972-75296032-448e0-16bcf5c825f7ed%22%2C%22created%22%3A1562552074849%2C%22lastPage%22%3A%2216bcf5bdce33c5-02134ae86c3f9a-e343166-15f900-16bcf5bdce450e%22%7D; PHPSESSID=kith7p86qg3eari19uk2jf6vl7; _ga=GA1.2.1506354422.1562594874; _gid=GA1.2.618117090.1562594874; _gat_gtag_UA_101725298_1=1',
+           'Referer':'https://luban.jinritemai.com/index.html',
     }
 
 async def get_message():
@@ -25,7 +22,6 @@ async def get_message():
 
 if __name__ == '__main__':
     loop = asyncio.get_event_loop()
-    # item = loop.run_until_complete(get_message())
-    item = loop.run_until_complete(tools.get_num_goods_by_id("3349129203542025053"))
+    item = loop.run_until_complete(get_message())
+    # item = loop.run_until_complete(tools.get_num_goods_by_id("3349129203542025053"))
     print(item)
-    print(item.get('data').get('sell_num'))
