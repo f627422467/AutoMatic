@@ -210,6 +210,9 @@ class Producer(threading.Thread):
         cid = item.get('cid')
         if not self.cids.__contains__(cid):
             cid = item.get('second_cid')
+        first_cid = item.get('first_cid')
+        second_cid = item.get('second_cid')
+        third_cid = item.get('cid')
         goods_picture_url = item.get('img')
         biz_type = item.get('biz_type')
         goods_url = 'https://haohuo.snssdk.com/views/product/item?id=' + goods_id
@@ -225,6 +228,9 @@ class Producer(threading.Thread):
                 return
             goods.shop_id = shop_id
             goods.cid = cid
+            goods.first_cid = first_cid
+            goods.second_cid = second_cid
+            goods.third_cid = third_cid
             goods.biz_type = biz_type
             goods.goods_name = goods_name
             goods.goods_url = goods_url
@@ -257,6 +263,9 @@ class Producer(threading.Thread):
             goods.goods_picture_url = goods_picture_url
             goods.goods_price = goods_price
             goods.cid = cid
+            goods.first_cid = first_cid
+            goods.second_cid = second_cid
+            goods.third_cid = third_cid
             goods.add_num = 0
             goods.sell_num = sell_num
             goods.item_last_sell_num = sell_num

@@ -39,6 +39,9 @@ async def exec_data(item, cids, semaphore):
         cid = item.get('third_cid')
         if not cids.__contains__(cid):
             cid = item.get('second_cid')
+        first_cid = item.get('first_cid')
+        second_cid = item.get('second_cid')
+        third_cid = item.get('third_cid')
         goods_picture_url = item.get('img')
         biz_type = item.get('biz_type')
         goods_url = 'https://haohuo.snssdk.com/views/product/item?id=' + goods_id
@@ -52,6 +55,9 @@ async def exec_data(item, cids, semaphore):
             add_num = sell_num - goods.sell_num
             goods.shop_id = shop_id
             goods.cid = cid
+            goods.first_cid = first_cid
+            goods.second_cid = second_cid
+            goods.third_cid = third_cid
             goods.biz_type = biz_type
             goods.goods_name = goods_name
             goods.goods_url = goods_url
@@ -84,6 +90,9 @@ async def exec_data(item, cids, semaphore):
             goods.goods_picture_url = goods_picture_url
             goods.goods_price = goods_price
             goods.cid = cid
+            goods.first_cid = first_cid
+            goods.second_cid = second_cid
+            goods.third_cid = third_cid
             goods.biz_type = biz_type
             goods.add_num = 0
             goods.sell_num = sell_num
