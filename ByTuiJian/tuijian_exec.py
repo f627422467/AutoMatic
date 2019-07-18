@@ -92,7 +92,7 @@ def exec(loop):
                         else:
                             goods_id = url[url.find('?id=') + 4:url.find('&')]
                         print(goods_id)
-                    item = loop.run_until_complete(tools.get_num_goods_by_id(goods_id))
+                    item = loop.run_until_complete(tools.get_goods_by_id(goods_id))
                     if not item or not item.get('data'):
                         continue
                     if not item.get('data').get('name') or item.get('data').get('name') == '':

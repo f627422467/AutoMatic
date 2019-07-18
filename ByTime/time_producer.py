@@ -33,14 +33,8 @@ class Producer(threading.Thread):
             if self.tmp_goods_id_object.__contains__(goods_id):
                 self.task.task_done()
                 continue
-            if self.type == "1":
-                item = loop.run_until_complete(tools.get_num_goods_by_id(goods_id))
-            else:
-                item = loop.run_until_complete(tools.get_goods_by_id(goods_id))
-            if not item or not item.get('data'):
-                self.task.task_done()
-                continue
-            if not item.get('data').get('name') or item.get('data').get('name') == '':
+            item = loop.run_until_complete(tools.get_goods_by_id(goods_id))
+            if item.get('msg') == '商品下架':
                 self.exec_not_sell(goods_id)
                 self.global_goods_ids.append(goods_id)
                 is_empty = False
@@ -50,11 +44,19 @@ class Producer(threading.Thread):
                     self.event.set()
                 self.task.task_done()
                 continue
+            if not item or not item.get('data') or not item.get('data').get('name') or item.get('data').get(
+                    'name') == '':
+                self.task.task_done()
+                continue
             if self.global_goods_ids.__contains__(goods_id):
                 self.task.task_done()
                 continue
             self.global_goods_ids.append(goods_id)
             item = item.get('data')
+            # if self.type == "1":
+            tmp = loop.run_until_complete(tools.get_num_goods_by_id(goods_id))
+            if not tmp and not tmp.get("data"):
+                item["sell_num"] = tmp.get("data").get("sell_num")
             # 判断栈是否已经满
             if self.q_goods.full() or self.q_goods_item.full() or self.q_goods_tmp.full():
                 print("队列已满，总数%s" % self.q_goods.qsize())
@@ -108,12 +110,13 @@ class Producer(threading.Thread):
             goods.second_cid = second_cid
             goods.third_cid = third_cid
             goods.biz_type = biz_type
+            goods.is_selling = True
             goods.goods_name = goods_name
             goods.goods_url = goods_url
             goods.goods_picture_url = goods_picture_url
             goods.goods_price = goods_price
             if time_now != time_last_edit:
-                goods.add_num = 0
+                goods.add_num = 0 + add_num
             elif add_num >= 0:
                 goods.add_num = goods.add_num + add_num
             if goods.add_num < 0:

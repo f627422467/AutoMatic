@@ -227,6 +227,7 @@ class Producer(threading.Thread):
             if add_num < 0:
                 return
             goods.shop_id = shop_id
+            goods.is_selling = True
             goods.cid = cid
             goods.first_cid = first_cid
             goods.second_cid = second_cid
@@ -237,7 +238,7 @@ class Producer(threading.Thread):
             goods.goods_picture_url = goods_picture_url
             goods.goods_price = goods_price
             if time_now != time_last_edit:
-                goods.add_num = 0
+                goods.add_num = 0 + add_num
             elif add_num >= 0:
                 goods.add_num = goods.add_num + add_num
             if goods.add_num < 0:

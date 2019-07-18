@@ -106,19 +106,17 @@ async def get_goods_by_category(cids, id, parentid, page):
 
 # 通过商品ID更新商品(User-Agent，必须使用手机的，否则抓不到数据)
 async def get_goods_by_id(goods_id):
-    params = {
-        'id': goods_id,
-        'b_type_new': 0
-    }
-    url = "https://haohuo.snssdk.com/product/fxgajaxstaticitem?" + urlencode(params)
-    headers = utils.get_defind_headers()
-    headers['User-Agent'] = utils.random_agent()
-    headers['Origin'] = 'https://haohuo.jinritemai.com'
-    headers['Referer'] = 'https://haohuo.jinritemai.com/views/product/item2?id=%s' % goods_id
-    proxy = utils.get_proxies()
-    return await utils.aiohttp_get(url, headers, proxy)
-
-async def get_num_goods_by_id(goods_id):
+    # params = {
+    #     'id': goods_id,
+    #     'b_type_new': 0
+    # }
+    # url = "https://haohuo.snssdk.com/product/fxgajaxstaticitem?" + urlencode(params)
+    # headers = utils.get_defind_headers()
+    # headers['User-Agent'] = utils.random_agent()
+    # headers['Origin'] = 'https://haohuo.jinritemai.com'
+    # headers['Referer'] = 'https://haohuo.jinritemai.com/views/product/item2?id=%s' % goods_id
+    # proxy = utils.get_proxies()
+    # return await utils.aiohttp_get(url, headers, proxy)
     params = {
         'id': goods_id,
         'b_type_new': 3
@@ -129,6 +127,30 @@ async def get_num_goods_by_id(goods_id):
     headers['Host'] = 'xd.snssdk.com'
     proxy = utils.get_proxies()
     return await utils.aiohttp_get(url, headers, proxy)
+
+async def get_num_goods_by_id(goods_id):
+    params = {
+        'id': goods_id,
+        'b_type_new': 3
+    }
+    #https://xd.snssdk.com/product/ajaxitem?b_type_new=3&id=3351904044548521371&pay_type=1&shop_id=yNEFQJ&uid=&campaign_id=&device_id=59747531127
+    url = "https://xd.snssdk.com/product/ajaxitem?" + urlencode(params)
+    headers = utils.get_defind_headers()
+    headers['User-Agent'] = utils.random_agent()
+    headers['Host'] = 'xd.snssdk.com'
+    proxy = utils.get_proxies()
+    return await utils.aiohttp_get(url, headers, proxy)
+    # params = {
+    #     'id': goods_id,
+    #     'b_type_new': 0
+    # }
+    # url = "https://haohuo.snssdk.com/product/fxgajaxstaticitem?" + urlencode(params)
+    # headers = utils.get_defind_headers()
+    # headers['User-Agent'] = utils.random_agent()
+    # headers['Origin'] = 'https://haohuo.jinritemai.com'
+    # headers['Referer'] = 'https://haohuo.jinritemai.com/views/product/item2?id=%s' % goods_id
+    # proxy = utils.get_proxies()
+    # return await utils.aiohttp_get(url, headers, proxy)
 
 async def get_tuijian_goods():
     url = "https://is-hl.snssdk.com/api/news/feed/v88/?list_count=10&support_rn=4&refer=1&refresh_reason=1&session_refresh_idx=18&count=20&min_behot_time="+str(int(time.time()))+"&last_refresh_sub_entrance_interval="+str(int(time.time()))+"&gps_mode=7&loc_mode=1&loc_time="+str(int(time.time()))+"&latitude=32.15122444816348&longitude=118.73658058848514&city=%E5%8D%97%E4%BA%AC%E5%B8%82&tt_from=pull&plugin_enable=3&client_extra_params=%7B%22playparam%22%3A%22codec_type%3A1%22%7D&st_time=1838&sati_extra_params=%7B%22last_click_item_list%22%3A%5B%5D%7D&iid=77502709030&device_id=57954229867&ac=wifi&channel=xiaomi&aid=13&app_name=news_article&version_code=731&version_name=7.3.1&device_platform=android&ab_version=668774%2C765191%2C976875%2C821968%2C857804%2C952276%2C757284%2C991602%2C983226%2C679101%2C660830%2C830855%2C947963%2C942634%2C662176%2C955526%2C665173%2C674055%2C643892%2C671752%2C654104%2C649426%2C677128%2C710077%2C801968%2C707372%2C661900%2C668775%2C982555%2C971379%2C739394%2C662099%2C759652%2C661781&ab_feature=94563%2C102749&ssmix=a&device_type=MIX+2S&device_brand=Xiaomi&language=zh&os_api=28&os_version=9&openudid=65eabf5f997f8c77&manifest_version_code=731&resolution=1080*2030&dpi=440&update_version_code=73109&_rticket=1562161437652&plugin=18766&pos=5r_-9Onkv6e_eBAKeScxeCUfv7G_8fLz-vTp6Pn4v6esrKWzqq6rqKWtqKWlqaWorKmxv_H86fTp6Pn4v6eur7OsqKyvr6mpqaWsq66ppbG__PD87d706eS_p794EAp5JzF4JR-_sb_88Pzt0fLz-vTp6Pn4v6esrKWzqq6trKyusb_88Pzt0fzp9Ono-fi_p66vs6ypqKippOA%3D&fp=F2TrPzQ5L2HSFlTrL2U1F2ZuLSTZ&tma_jssdk_version=1.23.0.6&rom_version=miui__v10.2.2.0.pdgcnxm&ts=1562161437&as=abc27fec685d1cb11dc27f&mas=0119932353f99959d373f979b98507b28759d373f919b3b379f9b3&cp=55d51fc5b311dq1 HTTP/1.1"

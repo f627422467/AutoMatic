@@ -29,16 +29,26 @@ class Producer(threading.Thread):
                 break
             goods_id = self.task.get()
             self.task.task_done()
-            item = loop.run_until_complete(tools.get_num_goods_by_id(goods_id))
-            if not item or not item.get('data'):
-                continue
-            if not item.get('data').get('name') or item.get('data').get('name') == '':
+            item = loop.run_until_complete(tools.get_goods_by_id(goods_id))
+            if item.get('msg') == '商品下架':
                 print("下架： %s" % goods_id)
+                self.exec_not_sell(goods_id)
+                self.global_goods_ids.append(goods_id)
+                is_empty = False
+                if self.q_goods.empty() or self.q_goods_item.empty() or self.q_goods_tmp.empty():
+                    is_empty = True
+                if is_empty:
+                    self.event.set()
+                continue
+            if not item or not item.get('data') or not item.get('data').get('name') or item.get('data').get('name') == '':
                 continue
             if self.global_goods_ids.__contains__(goods_id):
                 continue
             self.global_goods_ids.append(goods_id)
             item = item.get('data')
+            tmp = loop.run_until_complete(tools.get_num_goods_by_id(goods_id))
+            if tmp and tmp.get("data"):
+                item["sell_num"] = tmp.get("data").get("sell_num")
             # 判断栈是否已经满
             if self.q_goods.full() or self.q_goods_item.full() or self.q_goods_tmp.full():
                 print("队列已满，总数%s" % self.q_goods.qsize())
@@ -63,6 +73,7 @@ class Producer(threading.Thread):
         if not goods_id:
             return
         goods = self.goods_id_object.get(goods_id)
+        # print("goodsID:%s；sell_num:%s;" % (goods_id,item.get('sell_num')))
         sell_num = tools.get_sell_num(item.get('sell_num'))
         shop_id = item.get('shop_id')
         goods_price = item.get('discount_price') / 100
@@ -128,3 +139,14 @@ class Producer(threading.Thread):
             tmp.edit_time = datetime.datetime.now()
             self.q_goods_tmp.put(tmp)
 
+    def exec_not_sell(self, goods_id):
+        goods = self.goods_id_object.get(goods_id)
+        if goods:
+            time_now = datetime.datetime.now().strftime("%Y-%m-%d")
+            time_last_edit = goods.edit_time.strftime("%Y-%m-%d")
+            if time_now != time_last_edit:
+                goods.add_num = 0
+            goods.is_selling = False
+            # goods.add_num = 0
+            goods.edit_time = datetime.datetime.now()
+            self.q_goods.put(goods)
