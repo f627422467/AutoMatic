@@ -69,9 +69,15 @@ def exec(loop):
                                 deversion = raw_data['deversion']
                                 url = deversion['schema_url']
                                 if 'shop%2Findex%3Fid%3D' in url:
-                                    shop_id = url[url.find('id%3D')+5:url.find('%26')]
+                                    if url.find('&') == -1:
+                                        shop_id = url[url.find('id%3D')+5:]
+                                    else:
+                                        shop_id = url[url.find('id%3D') + 5:url.find('%26')]
                                 elif 'product%2Fitem2%3Fid%3D' in url:
-                                    goods_id = url[url.find('id%3D')+5:url.find('%26')]
+                                    if url.find('&') == -1:
+                                        goods_id = url[url.find('id%3D')+5:]
+                                    else:
+                                        goods_id = url[url.find('id%3D') + 5:url.find('%26')]
                                 break
                 elif "content" in content and "https://haohuo" in content['content']:
                     url = content['content']
@@ -88,15 +94,21 @@ def exec(loop):
                 if not shop_id:
                     if not goods_id :
                         if "id%3D" in url:
-                            goods_id = url[url.find('id%3D') + 5:url.find('%26')]
+                            if url.find('&') == -1:
+                                goods_id = url[url.find('id%3D') + 5:]
+                            else:
+                                goods_id = url[url.find('id%3D') + 5:url.find('%26')]
                         else:
-                            goods_id = url[url.find('?id=') + 4:url.find('&')]
+                            if url.find('&') == -1:
+                                goods_id = url[url.find('?id=') + 4:]
+                            else:
+                                goods_id = url[url.find('?id=') + 4:url.find('&')]
                         print(goods_id)
                     item = loop.run_until_complete(tools.get_goods_by_id(goods_id))
-                    if not item or not item.get('data'):
-                        continue
-                    if not item.get('data').get('name') or item.get('data').get('name') == '':
+                    if item.get('msg') == '商品下架':
                         print("下架： %s" % goods_id)
+                        continue
+                    if not item or not item.get('data') or not item.get('data').get('name') or item.get('data').get('name') == '':
                         continue
                     item = item.get('data')
                     goods_ad = loop.run_until_complete(Goods_Ad.find_one('goods_id=?', goods_id))
@@ -113,4 +125,3 @@ def exec(loop):
                 loop.run_until_complete(check_shop(shop_id))
     except Exception as e:
         print(str(e))
-

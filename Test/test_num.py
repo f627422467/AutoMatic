@@ -26,7 +26,5 @@ async def get_message(url):
 if __name__ == '__main__':
     loop = asyncio.get_event_loop()
     page = 0
-    item = loop.run_until_complete(tools.get_goods_by_id("3300689290178214899"))
+    item = loop.run_until_complete(tools.get_goods_by_id("3333904564440168700"))
     print(item)
-    if not item.get('data') or item.get('msg') == '商品下架':
-        print("下架")
