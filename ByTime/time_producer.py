@@ -33,30 +33,35 @@ class Producer(threading.Thread):
             if self.tmp_goods_id_object.__contains__(goods_id):
                 self.task.task_done()
                 continue
-            item = loop.run_until_complete(tools.get_goods_by_id(goods_id))
-            if item.get('msg') == '商品下架':
-                self.exec_not_sell(goods_id)
+            if self.type == "update":
+                item = loop.run_until_complete(tools.get_goods_by_id(goods_id))
+                if item and item.get('msg') == '商品下架':
+                    self.exec_not_sell(goods_id)
+                    self.global_goods_ids.append(goods_id)
+                    is_empty = False
+                    if self.q_goods.empty() or self.q_goods_item.empty() or self.q_goods_tmp.empty():
+                        is_empty = True
+                    if is_empty:
+                        self.event.set()
+                    self.task.task_done()
+                    continue
+                if not item or not item.get('data') or not item.get('data').get('name') or item.get('data').get(
+                        'name') == '':
+                    self.task.task_done()
+                    continue
+                if self.global_goods_ids.__contains__(goods_id):
+                    self.task.task_done()
+                    continue
                 self.global_goods_ids.append(goods_id)
-                is_empty = False
-                if self.q_goods.empty() or self.q_goods_item.empty() or self.q_goods_tmp.empty():
-                    is_empty = True
-                if is_empty:
-                    self.event.set()
-                self.task.task_done()
-                continue
-            if not item or not item.get('data') or not item.get('data').get('name') or item.get('data').get(
-                    'name') == '':
-                self.task.task_done()
-                continue
-            if self.global_goods_ids.__contains__(goods_id):
-                self.task.task_done()
-                continue
-            self.global_goods_ids.append(goods_id)
-            item = item.get('data')
-            # if self.type == "1":
-            tmp = loop.run_until_complete(tools.get_num_goods_by_id(goods_id))
-            if not tmp and not tmp.get("data"):
-                item["sell_num"] = tmp.get("data").get("sell_num")
+                item = item.get('data')
+            else:
+                tmp = loop.run_until_complete(tools.get_num_goods_by_id(goods_id))
+                sell_num = None
+                if tmp and tmp.get("data"):
+                    sell_num = tmp.get("data").get("sell_num")
+                if not sell_num:
+                    self.task.task_done()
+                    continue
             # 判断栈是否已经满
             if self.q_goods.full() or self.q_goods_item.full() or self.q_goods_tmp.full():
                 print("队列已满，总数%s" % self.q_goods.qsize())
@@ -70,12 +75,67 @@ class Producer(threading.Thread):
                 is_empty = False
                 if self.q_goods.empty() or self.q_goods_item.empty() or self.q_goods_tmp.empty():
                     is_empty = True
-                self.do_entitry(item)
+                if self.type == "update":
+                    self.do_entitry(item)
+                else:
+                    self.do_entitry_num(goods_id,sell_num)
                 self.task.task_done()
                 if is_empty:
                     self.event.set()
                     # print(" %s 唤起其他人" % self.name)
         print(self.name + "结束")
+
+    def do_entitry_num(self, goods_id,sell_num):
+        goods = self.goods_id_object.get(goods_id)
+        sell_num = tools.get_sell_num(sell_num)
+        if goods:
+            # 修改
+            time_now = datetime.datetime.now().strftime("%Y-%m-%d")
+            time_last_edit = goods.edit_time.strftime("%Y-%m-%d")
+            # 较上次增量
+            sell_num_old = goods.sell_num
+            add_num = sell_num - sell_num_old
+            if add_num < 0:
+                return
+            if time_now != time_last_edit:
+                goods.add_num = 0 + add_num
+            elif add_num >= 0:
+                goods.add_num = goods.add_num + add_num
+            if goods.add_num < 0:
+                return
+            goods.sell_num = sell_num
+            if goods.item_last_sell_num is None:
+                goods.item_last_sell_num = goods.sell_num
+            goods.edit_time = datetime.datetime.now()
+
+            item_add_num = sell_num - goods.item_last_sell_num
+            if item_add_num > 100 or item_add_num < 0:
+                goods.item_last_sell_num = sell_num
+            # await goods.update()
+            self.q_goods.put(goods)
+            # print("goods 队列：%s" % self.q_goods.qsize())
+        else:
+            raise Exception("出错！数据库中没有查询到相应值")
+        if item_add_num >= 100:
+            goods_item = Goods_Item()
+            goods_item.goods_id = goods.id
+            goods_item.sell_num = sell_num
+            goods_item.add_num = item_add_num
+            # await goods_item.save()
+            self.q_goods_item.put(goods_item)
+            # print("q_goods_item 队列：%s" % self.q_goods_item.qsize())
+        if goods.add_num > 0:
+            tmp = self.goods_id_tmp.get(goods.id)
+            if not tmp:
+                tmp = Goods_Tmp()
+            # await Goods_Tmp.del_by('goods_id=?', goods.id)
+            tmp.goods_id = goods.id
+            tmp.add_num = goods.add_num
+            tmp.sell_num = goods.sell_num
+            tmp.edit_time = datetime.datetime.now()
+            # await tmp.save()
+            self.q_goods_tmp.put(tmp)
+            # print("q_goods_tmp 队列：%s" % self.q_goods_tmp.qsize())
 
     def do_entitry(self, item):
         goods_id = item.get('product_id')

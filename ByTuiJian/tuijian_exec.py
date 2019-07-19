@@ -69,12 +69,12 @@ def exec(loop):
                                 deversion = raw_data['deversion']
                                 url = deversion['schema_url']
                                 if 'shop%2Findex%3Fid%3D' in url:
-                                    if url.find('&') == -1:
+                                    if url.find('%26') == -1:
                                         shop_id = url[url.find('id%3D')+5:]
                                     else:
                                         shop_id = url[url.find('id%3D') + 5:url.find('%26')]
                                 elif 'product%2Fitem2%3Fid%3D' in url:
-                                    if url.find('&') == -1:
+                                    if url.find('%26') == -1:
                                         goods_id = url[url.find('id%3D')+5:]
                                     else:
                                         goods_id = url[url.find('id%3D') + 5:url.find('%26')]
@@ -94,7 +94,7 @@ def exec(loop):
                 if not shop_id:
                     if not goods_id :
                         if "id%3D" in url:
-                            if url.find('&') == -1:
+                            if url.find('%26') == -1:
                                 goods_id = url[url.find('id%3D') + 5:]
                             else:
                                 goods_id = url[url.find('id%3D') + 5:url.find('%26')]

@@ -26,5 +26,5 @@ async def get_message(url):
 if __name__ == '__main__':
     loop = asyncio.get_event_loop()
     page = 0
-    item = loop.run_until_complete(tools.get_goods_by_id("3333904564440168700"))
+    item = loop.run_until_complete(tools.get_num_goods_by_id("3337428239344871188"))
     print(item)
