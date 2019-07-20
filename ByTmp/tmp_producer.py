@@ -30,7 +30,7 @@ class Producer(threading.Thread):
             goods_id = self.task.get()
             self.task.task_done()
             item = loop.run_until_complete(tools.get_goods_by_id(goods_id))
-            if item.get('msg') == '商品下架':
+            if item and item.get('msg') == '商品下架':
                 print("下架： %s" % goods_id)
                 self.exec_not_sell(goods_id)
                 self.global_goods_ids.append(goods_id)
