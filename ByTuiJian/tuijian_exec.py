@@ -105,7 +105,7 @@ def exec(loop):
                                 goods_id = url[url.find('?id=') + 4:url.find('&')]
                         print(goods_id)
                     item = loop.run_until_complete(tools.get_goods_by_id(goods_id))
-                    if item.get('msg') == '商品下架':
+                    if item and item.get('msg') == '商品下架':
                         print("下架： %s" % goods_id)
                         continue
                     if not item or not item.get('data') or not item.get('data').get('name') or item.get('data').get('name') == '':
