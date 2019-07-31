@@ -19,6 +19,7 @@ import tools
 
 if __name__ == '__main__':
 
+
     query_time = str(sys.argv[1])
     type = str(sys.argv[2])
     update_type = str(sys.argv[3])
