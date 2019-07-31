@@ -22,7 +22,7 @@ if __name__ == '__main__':
     query_time = str(sys.argv[1])
     type = str(sys.argv[2])
     update_type = str(sys.argv[3])
-    # query_time = "2019-07-19 22:00:00"
+    # query_time = "2019-07-31 22:00:00"
     # type = "1"
     # update_type = "update_num"
     print(query_time)
@@ -85,7 +85,7 @@ if __name__ == '__main__':
     c3.daemon = True
     c3.start()
 
-    for i in range(600):
+    for i in range(300):
         p = time_producer.Producer(i, q_task, q_goods, q_goods_item, q_goods_tmp, event, global_goods_ids,
                                    goods_id_object,tmp_goods_id_object, goods_id_tmp, cids,update_type)
         p.start()

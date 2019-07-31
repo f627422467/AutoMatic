@@ -1,30 +1,43 @@
 import aiohttp
 import asyncio
+import requests
+import json
 import tools
 
-headers = {'User-Agent': ' Mozilla/5.0 (Linux; Android 9; MIX 2S Build/PKQ1.180729.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/62.0.3202.84 Mobile Safari/537.36 NewsArticle/7.3.0 ToutiaoMicroApp/1.22.0.0 PluginVersion/73005',
-           'Accept-Encoding': 'gzip',
-           # 'Accept- Language': 'en - US, en;q = 0.5',
-           "Connection": "keep-alive",
-           # 'Cookie':'eed.js%3Asession=%7B%22id%22%3A%2216bc2b9b74754e-04dd9f608bad46-e343166-1fa400-16bc2b9b74871c%22%2C%22page%22%3A%2216bcf5c825e4f6-0048189e270972-75296032-448e0-16bcf5c825f7ed%22%2C%22created%22%3A1562552074849%2C%22lastPage%22%3A%2216bcf5bdce33c5-02134ae86c3f9a-e343166-15f900-16bcf5bdce450e%22%7D; PHPSESSID=kith7p86qg3eari19uk2jf6vl7; _ga=GA1.2.1506354422.1562594874; _gid=GA1.2.618117090.1562594874; _gat_gtag_UA_101725298_1=1',
-           'Referer':'https://tmaservice.developer.toutiao.com?appid=tt7cca0a77e3e0cd15&version=0.0.170',
+headers = {
+            "Accept": "application/json, text/javascript, */*; q=0.01",
+            'Accept-Encoding': 'gzip,deflate',
+            'Accept- Language': 'zh-CN,en-US,q=0.9',
+            'User-Agent': 'Mozilla/5.0 (Linux; Android 9; MI CC 9 Build/PKQ1.181121.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/66.0.3359.126 MQQBrowser/6.2 TBS/044807 Mobile Safari/537.36 MMWEBID/4072 MicroMessenger/7.0.5.1440(0x27000537) Process/tools NetType/WIFI Language/zh_CN',
+            'Connection': 'keep-alive',
+            'Content-Length': '31',
+            "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+            "X-Requested-With": "XMLHttpRequest",
+            "Origin": "http://tp.levote.top",
+            "Host": "tp.levote.top",
+           'Referer':'Referer: http://tp.levote.top/app/index.php?i=2&c=entry&id=2819&rid=99&isopenlink=first&do=view&m=tyzm_diamondvote&from=timeline',
+            'Cookie': 'PHPSESSID=cc8febb367efaad19be7d280332ea6d4; Hm_lvt_08c6f5e17c0761a968c5658ccf6ff5ad=1564228896; Hm_lpvt_08c6f5e17c0761a968c5658ccf6ff5ad=1564244863'
     }
 
 
 #3354685615617754865
 
-async def get_message(url):
+async def get_message(url,data):
     async with aiohttp.ClientSession() as session:
         try:
-            async with session.get(url, headers=headers, timeout=10) as resp:
+            async with session.post(url, headers=headers,data=data) as resp:
                 if resp.status == 200:
-                    return await resp.json()
+                    return resp
         except Exception as e:
             print("请求异常：%s" % (str(e)))
             pass
 
 if __name__ == '__main__':
-    loop = asyncio.get_event_loop()
-    page = 0
-    item = loop.run_until_complete(tools.get_num_goods_by_id("3337428239344871188"))
-    print(item)
+    # loop = asyncio.get_event_loop()
+    # url = "http://tp.levote.top/app/index.php"
+    url = "http://tp.levote.top/app/index.php"
+    data = {"i":2,"c":"entry","rid":99,"id":2819,"do":"vote","m":"tyzm_diamondvote","latitude":0,"longitude":0,"verify":0}
+    # item = loop.run_until_complete(get_message(url,data))
+    # print(item)
+    res = requests.post(url,data=json.dumps(data),headers=headers)
+    print(res.text)
